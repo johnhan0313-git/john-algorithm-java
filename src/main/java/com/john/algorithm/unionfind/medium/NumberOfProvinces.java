@@ -1,5 +1,7 @@
 package com.john.algorithm.unionfind.medium;
 
+import com.john.algorithm.common.TestHelper;
+
 /**
  * LeetCode 547. 省份数量
  *
@@ -9,6 +11,10 @@ package com.john.algorithm.unionfind.medium;
  * 返回省份的数量。
  *
  * <p>示例：isConnected = [[1,1,0],[1,1,0],[0,0,1]]，输出 2。
+ *
+ * <p>面试考频：高（并查集入门，Amazon/Google 常考）
+ * <p>常见公司：Amazon、Google、字节跳动、Meta、LinkedIn
+ * <p>LeetCode 通过率：约 65.4%
  */
 public class NumberOfProvinces {
 
@@ -65,5 +71,13 @@ public class NumberOfProvinces {
             parent[rootX] = rootY;
             count--;
         }
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== NumberOfProvinces ===");
+        NumberOfProvinces s = new NumberOfProvinces();
+        TestHelper.checkInt("case1", 2, s.findCircleNum(new int[][]{{1, 1, 0}, {1, 1, 0}, {0, 0, 1}}));
+        TestHelper.checkInt("case2", 3, s.findCircleNum(new int[][]{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}));
+        TestHelper.checkInt("case3", 1, s.findCircleNum(new int[][]{{1, 1}, {1, 1}}));
     }
 }

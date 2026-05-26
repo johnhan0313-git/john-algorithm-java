@@ -1,5 +1,7 @@
 package com.john.algorithm.backtracking.medium;
 
+import com.john.algorithm.common.TestHelper;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +11,10 @@ import java.util.List;
  * <p>给定一个不含重复数字的数组 nums，返回其所有可能的全排列。你可以按任意顺序返回答案。
  *
  * <p>示例：nums = [1,2,3]，输出 [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]。
+ *
+ * <p>面试考频：极高（回溯算法入门标杆，Google/Meta 高频）
+ * <p>常见公司：Google、Meta、Amazon、字节跳动、微软
+ * <p>LeetCode 通过率：约 72.7%
  */
 public class Permutations {
 
@@ -46,5 +52,13 @@ public class Permutations {
             path.remove(path.size() - 1);
             used[i] = false;
         }
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== Permutations ===");
+        Permutations s = new Permutations();
+        System.out.println("case1 size: " + s.permute(new int[]{1, 2, 3}).size());
+        System.out.println("case2: " + s.permute(new int[]{0, 1}));
+        System.out.println("case3: " + s.permute(new int[]{1}));
     }
 }

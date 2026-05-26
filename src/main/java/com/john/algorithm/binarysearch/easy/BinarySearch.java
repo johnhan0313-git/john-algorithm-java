@@ -1,5 +1,7 @@
 package com.john.algorithm.binarysearch.easy;
 
+import com.john.algorithm.common.TestHelper;
+
 /**
  * LeetCode 704. 二分查找
  *
@@ -7,6 +9,10 @@ package com.john.algorithm.binarysearch.easy;
  * 写一个函数搜索 nums 中的 target，如果目标值存在返回下标，否则返回 -1。
  *
  * <p>示例：nums = [-1,0,3,5,9,12], target = 9，输出 4。
+ *
+ * <p>面试考频：极高（二分查找基础，所有大厂必考）
+ * <p>常见公司：Google、Amazon、字节跳动、Meta、微软、腾讯
+ * <p>LeetCode 通过率：约 55.2%
  */
 public class BinarySearch {
 
@@ -37,5 +43,13 @@ public class BinarySearch {
             }
         }
         return -1;
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== BinarySearch ===");
+        BinarySearch s = new BinarySearch();
+        TestHelper.checkInt("case1", 4, s.search(new int[]{-1, 0, 3, 5, 9, 12}, 9));
+        TestHelper.checkInt("case2", -1, s.search(new int[]{-1, 0, 3, 5, 9, 12}, 2));
+        TestHelper.checkInt("case3", 0, s.search(new int[]{5}, 5));
     }
 }

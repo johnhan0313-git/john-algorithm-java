@@ -1,5 +1,7 @@
 package com.john.algorithm.queue.hard;
 
+import com.john.algorithm.common.TestHelper;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -10,6 +12,10 @@ import java.util.Deque;
  * 你只可以看到在滑动窗口内的 k 个数字，滑动窗口每次只向右移动一位。返回滑动窗口中的最大值。
  *
  * <p>示例：nums = [1,3,-1,-3,5,3,6,7], k = 3，输出 [3,3,5,5,6,7]。
+ *
+ * <p>面试考频：极高（单调队列 Hard 代表，Google/字节高频）
+ * <p>常见公司：Google、Amazon、字节跳动、微软、Meta
+ * <p>LeetCode 通过率：约 50.3%
  */
 public class SlidingWindowMaximum {
 
@@ -41,5 +47,13 @@ public class SlidingWindowMaximum {
             }
         }
         return result;
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== SlidingWindowMaximum ===");
+        SlidingWindowMaximum s = new SlidingWindowMaximum();
+        TestHelper.checkArray("case1", new int[]{3, 3, 5, 5, 6, 7}, s.maxSlidingWindow(new int[]{1, 3, -1, -3, 5, 3, 6, 7}, 3));
+        TestHelper.checkArray("case2", new int[]{1}, s.maxSlidingWindow(new int[]{1}, 1));
+        TestHelper.checkArray("case3", new int[]{3, 3}, s.maxSlidingWindow(new int[]{1, 3, 1, 2}, 2));
     }
 }

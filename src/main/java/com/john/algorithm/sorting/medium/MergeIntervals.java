@@ -1,5 +1,7 @@
 package com.john.algorithm.sorting.medium;
 
+import com.john.algorithm.common.TestHelper;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -12,6 +14,10 @@ import java.util.List;
  * 请你合并所有重叠的区间，并返回一个不重叠的区间数组，该数组需恰好覆盖输入中的所有区间。
  *
  * <p>示例：intervals = [[1,3],[2,6],[8,10],[15,18]]，输出 [[1,6],[8,10],[15,18]]。
+ *
+ * <p>面试考频：极高（排序 + 贪心，Google/Meta/字节高频）
+ * <p>常见公司：Google、Meta、字节跳动、Amazon、微软
+ * <p>LeetCode 通过率：约 49.8%
  */
 public class MergeIntervals {
 
@@ -39,5 +45,13 @@ public class MergeIntervals {
             }
         }
         return merged.toArray(new int[merged.size()][]);
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== MergeIntervals ===");
+        MergeIntervals s = new MergeIntervals();
+        TestHelper.checkArray("case1 row0", new int[]{1, 6}, s.merge(new int[][]{{1, 3}, {2, 6}, {8, 10}, {15, 18}})[0]);
+        TestHelper.checkArray("case2", new int[]{1, 5}, s.merge(new int[][]{{1, 4}, {4, 5}})[0]);
+        System.out.println("case3 len: " + s.merge(new int[][]{{1, 4}, {0, 4}}).length);
     }
 }

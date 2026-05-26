@@ -1,5 +1,7 @@
 package com.john.algorithm.twopointer.medium;
 
+import com.john.algorithm.common.TestHelper;
+
 /**
  * LeetCode 11. 盛最多水的容器
  *
@@ -7,6 +9,10 @@ package com.john.algorithm.twopointer.medium;
  * 找出其中的两条线，使得它们与 x 轴共同构成的容器可以容纳最多的水。
  *
  * <p>示例：height = [1,8,6,2,5,4,8,3,7]，输出 49。
+ *
+ * <p>面试考频：高（双指针经典题，Google/Meta 面经高频）
+ * <p>常见公司：Google、Meta、Amazon、字节跳动、微软
+ * <p>LeetCode 通过率：约 57.6%
  */
 public class ContainerWithMostWater {
 
@@ -37,5 +43,13 @@ public class ContainerWithMostWater {
             }
         }
         return maxArea;
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== ContainerWithMostWater ===");
+        ContainerWithMostWater s = new ContainerWithMostWater();
+        TestHelper.checkInt("case1", 49, s.maxArea(new int[]{1, 8, 6, 2, 5, 4, 8, 3, 7}));
+        TestHelper.checkInt("case2", 1, s.maxArea(new int[]{1, 1}));
+        TestHelper.checkInt("case3", 16, s.maxArea(new int[]{4, 3, 2, 1, 4}));
     }
 }

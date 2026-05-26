@@ -1,11 +1,17 @@
 package com.john.algorithm.string.medium;
 
+import com.john.algorithm.common.TestHelper;
+
 /**
  * LeetCode 5. 最长回文子串
  *
  * <p>给你一个字符串 s，找到 s 中最长的回文子串。
  *
  * <p>示例：s = "babad"，输出 "bab" 或 "aba"。
+ *
+ * <p>面试考频：高（字符串 DP/中心扩展，Amazon/Google 常考）
+ * <p>常见公司：Amazon、Google、Meta、微软、字节跳动
+ * <p>LeetCode 通过率：约 35.8%
  */
 public class LongestPalindromicSubstring {
 
@@ -45,5 +51,13 @@ public class LongestPalindromicSubstring {
             right++;
         }
         return right - left - 1;
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== LongestPalindromicSubstring ===");
+        LongestPalindromicSubstring s = new LongestPalindromicSubstring();
+        TestHelper.checkString("case1", "bab", s.longestPalindrome("babad"));
+        TestHelper.checkString("case2", "bb", s.longestPalindrome("cbbd"));
+        TestHelper.checkString("case3", "a", s.longestPalindrome("a"));
     }
 }

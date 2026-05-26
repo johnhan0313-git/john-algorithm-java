@@ -1,5 +1,7 @@
 package com.john.algorithm.linkedlist.easy;
 
+import com.john.algorithm.common.TestHelper;
+
 import com.john.algorithm.common.ListNode;
 
 /**
@@ -8,6 +10,10 @@ import com.john.algorithm.common.ListNode;
  * <p>给你单链表的头节点 head，请你反转链表，并返回反转后的链表。
  *
  * <p>示例：head = [1,2,3,4,5]，输出 [5,4,3,2,1]。
+ *
+ * <p>面试考频：极高（链表基础必考，Amazon/Google 热身题）
+ * <p>常见公司：Amazon、Google、Meta、微软、字节跳动
+ * <p>LeetCode 通过率：约 56.1%
  */
 public class ReverseLinkedList {
 
@@ -33,5 +39,13 @@ public class ReverseLinkedList {
             current = next;
         }
         return prev;
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== ReverseLinkedList ===");
+        ReverseLinkedList s = new ReverseLinkedList();
+        TestHelper.checkArray("case1", new int[]{5, 4, 3, 2, 1}, TestHelper.listToArray(s.reverseList(TestHelper.list(1, 2, 3, 4, 5))));
+        TestHelper.checkArray("case2", new int[]{1}, TestHelper.listToArray(s.reverseList(TestHelper.list(1))));
+        TestHelper.checkArray("case3", new int[]{}, TestHelper.listToArray(s.reverseList(null)));
     }
 }

@@ -1,5 +1,7 @@
 package com.john.algorithm.stack.easy;
 
+import com.john.algorithm.common.TestHelper;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -10,6 +12,10 @@ import java.util.Deque;
  * 有效字符串需满足：左括号必须用相同类型的右括号闭合，且必须以正确的顺序闭合。
  *
  * <p>示例：s = "()[]{}"，输出 true。
+ *
+ * <p>面试考频：极高（栈入门第一题，几乎所有大厂必考）
+ * <p>常见公司：Amazon、Google、Meta、字节跳动、腾讯、微软
+ * <p>LeetCode 通过率：约 44.9%
  */
 public class ValidParentheses {
 
@@ -48,5 +54,13 @@ public class ValidParentheses {
             }
         }
         return stack.isEmpty();
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== ValidParentheses ===");
+        ValidParentheses s = new ValidParentheses();
+        TestHelper.checkBool("case1", true, s.isValid("()[]{}"));
+        TestHelper.checkBool("case2", false, s.isValid("(]"));
+        TestHelper.checkBool("case3", false, s.isValid("([)]"));
     }
 }

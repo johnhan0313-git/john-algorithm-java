@@ -1,5 +1,7 @@
 package com.john.algorithm.dynamicprogramming.easy;
 
+import com.john.algorithm.common.TestHelper;
+
 /**
  * LeetCode 70. 爬楼梯
  *
@@ -7,6 +9,10 @@ package com.john.algorithm.dynamicprogramming.easy;
  * 你有多少种不同的方法可以爬到楼顶？
  *
  * <p>示例：n = 3，输出 3（1+1+1, 1+2, 2+1）。
+ *
+ * <p>面试考频：极高（DP 入门第一题，Amazon/Google 必考）
+ * <p>常见公司：Amazon、Google、字节跳动、LinkedIn、微软
+ * <p>LeetCode 通过率：约 55.3%
  */
 public class ClimbingStairs {
 
@@ -33,5 +39,13 @@ public class ClimbingStairs {
             prev1 = current;
         }
         return prev1;
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== ClimbingStairs ===");
+        ClimbingStairs s = new ClimbingStairs();
+        TestHelper.checkInt("case1", 3, s.climbStairs(3));
+        TestHelper.checkInt("case2", 2, s.climbStairs(2));
+        TestHelper.checkInt("case3", 89, s.climbStairs(10));
     }
 }

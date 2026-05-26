@@ -1,5 +1,7 @@
 package com.john.algorithm.binarytree.easy;
 
+import com.john.algorithm.common.TestHelper;
+
 import com.john.algorithm.common.TreeNode;
 
 /**
@@ -8,6 +10,10 @@ import com.john.algorithm.common.TreeNode;
  * <p>给定一个二叉树，找出其最大深度。二叉树的深度为根节点到最远叶子节点的最长路径上的节点数。
  *
  * <p>示例：root = [3,9,20,null,null,15,7]，输出 3。
+ *
+ * <p>面试考频：极高（二叉树递归入门，Amazon/Google 必考）
+ * <p>常见公司：Amazon、Google、字节跳动、Meta、微软
+ * <p>LeetCode 通过率：约 77.5%
  */
 public class MaximumDepthOfBinaryTree {
 
@@ -28,5 +34,13 @@ public class MaximumDepthOfBinaryTree {
             return 0;
         }
         return 1 + Math.max(maxDepth(root.left), maxDepth(root.right));
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== MaximumDepthOfBinaryTree ===");
+        MaximumDepthOfBinaryTree s = new MaximumDepthOfBinaryTree();
+        TestHelper.checkInt("case1", 3, s.maxDepth(TestHelper.tree(3, 9, 20, null, null, 15, 7)));
+        TestHelper.checkInt("case2", 0, s.maxDepth(null));
+        TestHelper.checkInt("case3", 2, s.maxDepth(TestHelper.tree(1, null, 2)));
     }
 }

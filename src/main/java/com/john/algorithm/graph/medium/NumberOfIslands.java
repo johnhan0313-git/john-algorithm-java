@@ -1,5 +1,7 @@
 package com.john.algorithm.graph.medium;
 
+import com.john.algorithm.common.TestHelper;
+
 /**
  * LeetCode 200. 岛屿数量
  *
@@ -13,6 +15,10 @@ package com.john.algorithm.graph.medium;
  *   ["1","1","0","0","0"],
  *   ["0","0","0","0","0"]
  * ]，输出 1。
+ *
+ * <p>面试考频：极高（DFS/BFS 图论入门，Google/Amazon 必考）
+ * <p>常见公司：Google、Amazon、微软、字节跳动、Meta
+ * <p>LeetCode 通过率：约 58.8%
  */
 public class NumberOfIslands {
 
@@ -50,5 +56,13 @@ public class NumberOfIslands {
         dfs(grid, row + 1, col);
         dfs(grid, row, col - 1);
         dfs(grid, row, col + 1);
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== NumberOfIslands ===");
+        NumberOfIslands s = new NumberOfIslands();
+        TestHelper.checkInt("case1", 1, s.numIslands(new char[][]{{'1','1','1','1','0'},{'1','1','0','1','0'},{'1','1','0','0','0'},{'0','0','0','0','0'}}));
+        TestHelper.checkInt("case2", 3, s.numIslands(new char[][]{{'1','1','0','0','0'},{'1','1','0','0','0'},{'0','0','1','0','0'},{'0','0','0','1','1'}}));
+        TestHelper.checkInt("case3", 0, s.numIslands(new char[][]{{'0'}}));
     }
 }

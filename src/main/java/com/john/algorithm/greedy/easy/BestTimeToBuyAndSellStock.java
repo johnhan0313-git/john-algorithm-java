@@ -1,5 +1,7 @@
 package com.john.algorithm.greedy.easy;
 
+import com.john.algorithm.common.TestHelper;
+
 /**
  * LeetCode 121. 买卖股票的最佳时机
  *
@@ -8,6 +10,10 @@ package com.john.algorithm.greedy.easy;
  * 如果你不能获取任何利润，返回 0。
  *
  * <p>示例：prices = [7,1,5,3,6,4]，输出 5（第 2 天买入，第 5 天卖出）。
+ *
+ * <p>面试考频：极高（贪心入门，Amazon/Meta 股票系列第一题）
+ * <p>常见公司：Amazon、Meta、Google、字节跳动、微软
+ * <p>LeetCode 通过率：约 55.4%
  */
 public class BestTimeToBuyAndSellStock {
 
@@ -31,5 +37,13 @@ public class BestTimeToBuyAndSellStock {
             maxProfit = Math.max(maxProfit, price - minPrice);
         }
         return maxProfit;
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== BestTimeToBuyAndSellStock ===");
+        BestTimeToBuyAndSellStock s = new BestTimeToBuyAndSellStock();
+        TestHelper.checkInt("case1", 5, s.maxProfit(new int[]{7, 1, 5, 3, 6, 4}));
+        TestHelper.checkInt("case2", 0, s.maxProfit(new int[]{7, 6, 4, 3, 1}));
+        TestHelper.checkInt("case3", 1, s.maxProfit(new int[]{1, 2}));
     }
 }

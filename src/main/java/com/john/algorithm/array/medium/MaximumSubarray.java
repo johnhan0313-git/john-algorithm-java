@@ -1,11 +1,17 @@
 package com.john.algorithm.array.medium;
 
+import com.john.algorithm.common.TestHelper;
+
 /**
  * LeetCode 53. 最大子数组和
  *
  * <p>给你一个整数数组 nums，请你找出一个具有最大和的连续子数组（子数组最少包含一个元素），返回其最大和。
  *
  * <p>示例：nums = [-2,1,-3,4,-1,2,1,-5,4]，输出 6（子数组 [4,-1,2,1]）。
+ *
+ * <p>面试考频：极高（Kadane 算法经典，动态规划/数组必考）
+ * <p>常见公司：Google、Amazon、字节跳动、LinkedIn、微软
+ * <p>LeetCode 通过率：约 51.3%
  */
 public class MaximumSubarray {
 
@@ -29,5 +35,13 @@ public class MaximumSubarray {
             maxSum = Math.max(maxSum, currentSum);
         }
         return maxSum;
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== MaximumSubarray ===");
+        MaximumSubarray s = new MaximumSubarray();
+        TestHelper.checkInt("case1", 6, s.maxSubArray(new int[]{-2, 1, -3, 4, -1, 2, 1, -5, 4}));
+        TestHelper.checkInt("case2", 1, s.maxSubArray(new int[]{1}));
+        TestHelper.checkInt("case3", 23, s.maxSubArray(new int[]{5, 4, -1, 7, 8}));
     }
 }

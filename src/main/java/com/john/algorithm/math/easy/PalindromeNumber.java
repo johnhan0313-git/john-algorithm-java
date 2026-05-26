@@ -1,5 +1,7 @@
 package com.john.algorithm.math.easy;
 
+import com.john.algorithm.common.TestHelper;
+
 /**
  * LeetCode 9. 回文数
  *
@@ -7,6 +9,10 @@ package com.john.algorithm.math.easy;
  * 回文数是指正序（从左向右）和倒序（从右向左）读都是一样的整数。
  *
  * <p>示例：x = 121，输出 true；x = -121，输出 false。
+ *
+ * <p>面试考频：中（数学/指针基础，Amazon/Apple 热身题）
+ * <p>常见公司：Amazon、Apple、微软、Google
+ * <p>LeetCode 通过率：约 55.7%
  */
 public class PalindromeNumber {
 
@@ -32,5 +38,13 @@ public class PalindromeNumber {
             x /= 10;
         }
         return x == reversed || x == reversed / 10;
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== PalindromeNumber ===");
+        PalindromeNumber s = new PalindromeNumber();
+        TestHelper.checkBool("case1", true, s.isPalindrome(121));
+        TestHelper.checkBool("case2", false, s.isPalindrome(-121));
+        TestHelper.checkBool("case3", false, s.isPalindrome(10));
     }
 }

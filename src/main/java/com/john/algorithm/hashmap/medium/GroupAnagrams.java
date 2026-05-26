@@ -1,5 +1,7 @@
 package com.john.algorithm.hashmap.medium;
 
+import com.john.algorithm.common.TestHelper;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,6 +15,10 @@ import java.util.Map;
  *
  * <p>示例：strs = ["eat","tea","tan","ate","nat","bat"]，
  * 输出 [["bat"],["nat","tan"],["ate","eat","tea"]]。
+ *
+ * <p>面试考频：高（哈希表 + 字符串，Meta/Amazon 常考）
+ * <p>常见公司：Meta、Amazon、Google、Uber、字节跳动
+ * <p>LeetCode 通过率：约 67.9%
  */
 public class GroupAnagrams {
 
@@ -36,5 +42,13 @@ public class GroupAnagrams {
             groups.computeIfAbsent(key, k -> new ArrayList<>()).add(str);
         }
         return new ArrayList<>(groups.values());
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== GroupAnagrams ===");
+        GroupAnagrams s = new GroupAnagrams();
+        System.out.println("case1: " + s.groupAnagrams(new String[]{"eat", "tea", "tan", "ate", "nat", "bat"}));
+        System.out.println("case2: " + s.groupAnagrams(new String[]{""}));
+        System.out.println("case3: " + s.groupAnagrams(new String[]{"a"}));
     }
 }

@@ -1,5 +1,7 @@
 package com.john.algorithm.heap.medium;
 
+import com.john.algorithm.common.TestHelper;
+
 import java.util.PriorityQueue;
 
 /**
@@ -9,6 +11,10 @@ import java.util.PriorityQueue;
  * 请注意，你需要找的是数组排序后的第 k 个最大的元素，而不是第 k 个不同的元素。
  *
  * <p>示例：nums = [3,2,1,5,6,4], k = 2，输出 5。
+ *
+ * <p>面试考频：极高（堆/TopK 模板，Amazon/Google 高频）
+ * <p>常见公司：Amazon、Google、字节跳动、Meta、LinkedIn
+ * <p>LeetCode 通过率：约 62.3%
  */
 public class KthLargestElement {
 
@@ -33,5 +39,13 @@ public class KthLargestElement {
             }
         }
         return minHeap.peek();
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== KthLargestElement ===");
+        KthLargestElement s = new KthLargestElement();
+        TestHelper.checkInt("case1", 5, s.findKthLargest(new int[]{3, 2, 1, 5, 6, 4}, 2));
+        TestHelper.checkInt("case2", 4, s.findKthLargest(new int[]{3, 2, 3, 1, 2, 4, 5, 5, 6}, 4));
+        TestHelper.checkInt("case3", 1, s.findKthLargest(new int[]{1}, 1));
     }
 }

@@ -1,5 +1,7 @@
 package com.john.algorithm.slidingwindow.medium;
 
+import com.john.algorithm.common.TestHelper;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,6 +11,10 @@ import java.util.Map;
  * <p>给定一个字符串 s，请你找出其中不含有重复字符的最长子串的长度。
  *
  * <p>示例：s = "abcabcbb"，输出 3（子串 "abc"）。
+ *
+ * <p>面试考频：极高（滑动窗口模板题，Amazon 最高频 Medium 之一）
+ * <p>常见公司：Amazon、Google、Meta、字节跳动、微软
+ * <p>LeetCode 通过率：约 41.3%
  */
 public class LongestSubstringWithoutRepeating {
 
@@ -37,5 +43,13 @@ public class LongestSubstringWithoutRepeating {
             maxLength = Math.max(maxLength, right - left + 1);
         }
         return maxLength;
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== LongestSubstringWithoutRepeating ===");
+        LongestSubstringWithoutRepeating s = new LongestSubstringWithoutRepeating();
+        TestHelper.checkInt("case1", 3, s.lengthOfLongestSubstring("abcabcbb"));
+        TestHelper.checkInt("case2", 1, s.lengthOfLongestSubstring("bbbbb"));
+        TestHelper.checkInt("case3", 3, s.lengthOfLongestSubstring("pwwkew"));
     }
 }
