@@ -74,6 +74,41 @@ def parse_method_doc(text: str) -> dict:
     return defaults
 
 
+def remove_main_method(text: str) -> str:
+    match = re.search(r"public\s+static\s+void\s+main\s*\(\s*String\[\]\s+\w+\s*\)\s*\{", text)
+    if not match:
+        return text
+    start = match.start()
+    brace_at = match.end() - 1
+    depth = 0
+    for i in range(brace_at, len(text)):
+        if text[i] == "{":
+            depth += 1
+        elif text[i] == "}":
+            depth -= 1
+            if depth == 0:
+                head = text[:start].rstrip()
+                tail = text[i + 1 :].lstrip()
+                return f"{head}\n{tail}".strip() if tail else head
+    return text
+
+
+def strip_javadocs(text: str) -> str:
+    return re.sub(r"/\*\*.*?\*/", "", text, flags=re.DOTALL)
+
+
+def extract_solution_code(text: str) -> str:
+    class_match = re.search(r"public\s+class\s+\w+", text)
+    if not class_match:
+        return ""
+    code = text[class_match.start() :]
+    code = remove_main_method(code)
+    code = strip_javadocs(code)
+    code = re.sub(r"[ \t]+\n", "\n", code)
+    code = re.sub(r"\n{3,}", "\n\n", code)
+    return code.strip()
+
+
 def parse_file(path: Path) -> dict:
     text = path.read_text(encoding="utf-8")
     parts = path.parts
@@ -99,6 +134,7 @@ def parse_file(path: Path) -> dict:
     fqn = path.relative_to(ROOT / "src/main/java").with_suffix("").as_posix().replace("/", ".")
 
     method_doc = parse_method_doc(text)
+    solution_code = extract_solution_code(text)
     freq_level = "极高" if "极高" in frequency else "高" if frequency.startswith("高") else "中"
 
     return {
@@ -122,6 +158,8 @@ def parse_file(path: Path) -> dict:
         "fqn": fqn,
         "className": path.stem,
         "runCommand": f"java -cp target/classes {fqn}",
+        "solutionCode": solution_code,
+        "codeLines": len(solution_code.splitlines()) if solution_code else 0,
         **method_doc,
     }
 

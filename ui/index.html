@@ -74,30 +74,51 @@
     </div>
     <div class="dialog-body">
       <div class="detail-tags" id="detailTags"></div>
-      <section>
-        <h3>题目描述</h3>
-        <p id="detailDesc"></p>
-        <p id="detailExample" class="example"></p>
-      </section>
-      <section class="detail-grid">
-        <div><h3>核心解法</h3><p id="detailApproach"></p></div>
-        <div><h3>注意点</h3><p id="detailNotes"></p></div>
-        <div><h3>疑难点</h3><p id="detailPitfalls"></p></div>
-      </section>
-      <section class="detail-actions">
-        <div class="copy-row">
-          <code id="detailFqn"></code>
-          <button class="btn" data-copy="fqn">复制类名</button>
+
+      <div class="detail-tabs" role="tablist">
+        <button class="detail-tab active" data-tab="insight" role="tab">解题思路</button>
+        <button class="detail-tab" data-tab="code" role="tab">Java 实现</button>
+      </div>
+
+      <div id="panelInsight" class="detail-panel active">
+        <section>
+          <h3>题目描述</h3>
+          <p id="detailDesc"></p>
+          <p id="detailExample" class="example"></p>
+        </section>
+        <section class="detail-grid insight-cards">
+          <div class="insight-card"><h3>核心解法</h3><p id="detailApproach"></p></div>
+          <div class="insight-card"><h3>注意点</h3><p id="detailNotes"></p></div>
+          <div class="insight-card"><h3>疑难点</h3><p id="detailPitfalls"></p></div>
+        </section>
+        <section class="detail-actions">
+          <div class="copy-row">
+            <code id="detailFqn"></code>
+            <button class="btn" data-copy="fqn">复制类名</button>
+          </div>
+          <div class="copy-row">
+            <code id="detailPath"></code>
+            <button class="btn" data-copy="path">复制路径</button>
+          </div>
+          <div class="copy-row">
+            <code id="detailRun"></code>
+            <button class="btn" data-copy="run">复制运行命令</button>
+          </div>
+        </section>
+      </div>
+
+      <div id="panelCode" class="detail-panel">
+        <div class="code-toolbar">
+          <div class="code-meta">
+            <span id="codeFileName" class="code-filename"></span>
+            <span id="codeLineCount" class="code-lines"></span>
+          </div>
+          <button id="copyCodeBtn" class="btn">复制代码</button>
         </div>
-        <div class="copy-row">
-          <code id="detailPath"></code>
-          <button class="btn" data-copy="path">复制路径</button>
+        <div class="code-panel">
+          <div id="detailCode" class="code-block"></div>
         </div>
-        <div class="copy-row">
-          <code id="detailRun"></code>
-          <button class="btn" data-copy="run">复制运行命令</button>
-        </div>
-      </section>
+      </div>
     </div>
     <div class="dialog-footer">
       <button id="toggleDoneBtn" class="btn primary">标记完成</button>

@@ -78,10 +78,21 @@
       toast("请在项目根目录运行：python3 scripts/generate-ui-data.py");
     });
 
-    els.closeDialogBtn.addEventListener("click", () => els.detailDialog.close());
+    els.closeDialogBtn.addEventListener("click", closeDetailDialog);
     els.toggleDoneBtn.addEventListener("click", toggleSelectedDone);
 
     els.detailDialog.addEventListener("click", (e) => {
+      const rect = els.detailDialog.getBoundingClientRect();
+      const inside =
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom;
+      if (!inside) {
+        closeDetailDialog();
+        return;
+      }
+
       const btn = e.target.closest("[data-copy]");
       if (!btn) return;
       const type = btn.dataset.copy;
@@ -94,6 +105,29 @@
       };
       copyText(map[type]);
     });
+
+    document.querySelectorAll(".detail-tab").forEach((tab) => {
+      tab.addEventListener("click", () => switchDetailTab(tab.dataset.tab));
+    });
+
+    document.getElementById("copyCodeBtn").addEventListener("click", () => {
+      const p = currentProblem();
+      if (p && p.solutionCode) copyText(p.solutionCode);
+    });
+  }
+
+  function closeDetailDialog() {
+    els.detailDialog.close();
+    els.detailDialog.classList.remove("code-mode");
+  }
+
+  function switchDetailTab(tabName) {
+    document.querySelectorAll(".detail-tab").forEach((tab) => {
+      tab.classList.toggle("active", tab.dataset.tab === tabName);
+    });
+    document.getElementById("panelInsight").classList.toggle("active", tabName === "insight");
+    document.getElementById("panelCode").classList.toggle("active", tabName === "code");
+    els.detailDialog.classList.toggle("code-mode", tabName === "code");
   }
 
   function renderStats() {
@@ -168,7 +202,7 @@
       if (state.search) {
         const hay = [
           p.lcNum, p.title, p.fullTitle, p.companies, p.fqn,
-          p.categoryLabel, p.className, p.description,
+          p.categoryLabel, p.className, p.description, p.approach,
         ].join(" ").toLowerCase();
         if (!hay.includes(state.search)) return false;
       }
@@ -213,8 +247,8 @@
           <span class="tag">${escapeHtml(shortCompanies(p.companies))}</span>
         </div>
         <div class="card-foot">
-          <span>${done ? "✓ 已完成" : "点击查看解法思路"}</span>
-          <span>${escapeHtml(p.summary || "打开详情")}</span>
+          <span>${done ? "✓ 已完成" : "思路 + Java 实现"}</span>
+          <span>${p.codeLines ? p.codeLines + " 行" : escapeHtml(p.summary || "打开详情")}</span>
         </div>
       </article>`;
   }
@@ -240,6 +274,12 @@
       tag(`通过率 ${p.passRate}%`),
       tag(p.companies),
     ].join("");
+
+    document.getElementById("codeFileName").textContent = `${p.className}.java`;
+    document.getElementById("codeLineCount").textContent = `${p.codeLines || 0} 行 · ${p.fqn}`;
+    document.getElementById("detailCode").innerHTML = renderJavaCode(p.solutionCode || "// 暂无代码");
+
+    switchDetailTab("insight");
 
     const done = !!state.progress[p.id];
     els.toggleDoneBtn.textContent = done ? "取消完成标记" : "标记为已完成";
@@ -289,6 +329,41 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  }
+
+  function renderJavaCode(code) {
+    const lines = String(code).split("\n");
+    return lines
+      .map((line, index) => {
+        const content = line.length === 0 ? " " : highlightJavaLine(line);
+        return `<div class="code-row"><span class="code-gutter">${index + 1}</span><span class="code-content">${content}</span></div>`;
+      })
+      .join("");
+  }
+
+  function highlightJavaLine(line) {
+    const tokens = [];
+    const re = /("(?:\\.|[^"\\])*")|(\/\/.*$)|(\b\d+(?:\.\d+)?\b)|(\b(?:public|private|protected|static|final|class|interface|extends|implements|return|if|else|for|while|do|switch|case|break|continue|new|this|super|void|int|long|double|float|boolean|char|byte|short|null|true|false|throw|try|catch|enum)\b)|(\b(?:String|Integer|List|Map|Set|Deque|PriorityQueue|ArrayList|HashMap|Arrays|Math|Collections)\b)/g;
+    let last = 0;
+    let m;
+    while ((m = re.exec(line)) !== null) {
+      if (m.index > last) {
+        tokens.push(escapeHtml(line.slice(last, m.index)));
+      }
+      const value = m[0];
+      let cls = "";
+      if (m[1]) cls = "hl-str";
+      else if (m[2]) cls = "hl-cm";
+      else if (m[3]) cls = "hl-num";
+      else if (m[4]) cls = "hl-kw";
+      else if (m[5]) cls = "hl-ty";
+      tokens.push(`<span class="${cls}">${escapeHtml(value)}</span>`);
+      last = m.index + value.length;
+    }
+    if (last < line.length) {
+      tokens.push(escapeHtml(line.slice(last)));
+    }
+    return tokens.join("");
   }
 
   function copyText(text) {
