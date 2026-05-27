@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>算法题可视化 · john-algorithm-java</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>算法助手</h1>
+        <p>john-algorithm-java</p>
+      </div>
+
+      <div class="sidebar-section">
+        <label class="label" for="search">搜索</label>
+        <input id="search" type="search" placeholder="题号 / 标题 / 公司 / 类名…">
+      </div>
+
+      <div class="sidebar-section">
+        <span class="label">难度</span>
+        <div id="difficultyFilters" class="chip-group"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <span class="label">考频</span>
+        <div id="freqFilters" class="chip-group"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <span class="label">类别</span>
+        <div id="categoryFilters" class="category-list"></div>
+      </div>
+
+      <div class="sidebar-section progress-box">
+        <span class="label">学习进度</span>
+        <div class="progress-bar"><div id="progressFill"></div></div>
+        <p id="progressText">0 / 0 已完成</p>
+        <div class="progress-actions">
+          <button id="showTodoBtn" class="btn ghost">仅看未完成</button>
+          <button id="resetProgressBtn" class="btn ghost danger">重置进度</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div id="statsCards" class="stats"></div>
+        <div class="topbar-actions">
+          <select id="sortBy">
+            <option value="category">按类别</option>
+            <option value="passRateAsc">通过率 ↑（难→易）</option>
+            <option value="passRateDesc">通过率 ↓（易→难）</option>
+            <option value="lcNum">按题号</option>
+          </select>
+          <button id="refreshHintBtn" class="btn">刷新数据</button>
+        </div>
+      </header>
+
+      <section id="problemGrid" class="grid"></section>
+      <div id="emptyState" class="empty hidden">没有匹配的题目，试试调整筛选条件。</div>
+    </main>
+  </div>
+
+  <dialog id="detailDialog">
+    <div class="dialog-header">
+      <div>
+        <p id="detailLc" class="detail-meta"></p>
+        <h2 id="detailTitle"></h2>
+      </div>
+      <button id="closeDialogBtn" class="icon-btn" aria-label="关闭">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="detail-tags" id="detailTags"></div>
+      <section>
+        <h3>题目描述</h3>
+        <p id="detailDesc"></p>
+        <p id="detailExample" class="example"></p>
+      </section>
+      <section class="detail-grid">
+        <div><h3>核心解法</h3><p id="detailApproach"></p></div>
+        <div><h3>注意点</h3><p id="detailNotes"></p></div>
+        <div><h3>疑难点</h3><p id="detailPitfalls"></p></div>
+      </section>
+      <section class="detail-actions">
+        <div class="copy-row">
+          <code id="detailFqn"></code>
+          <button class="btn" data-copy="fqn">复制类名</button>
+        </div>
+        <div class="copy-row">
+          <code id="detailPath"></code>
+          <button class="btn" data-copy="path">复制路径</button>
+        </div>
+        <div class="copy-row">
+          <code id="detailRun"></code>
+          <button class="btn" data-copy="run">复制运行命令</button>
+        </div>
+      </section>
+    </div>
+    <div class="dialog-footer">
+      <button id="toggleDoneBtn" class="btn primary">标记完成</button>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -82,3 +82,19 @@ IDEA 内置 Markdown **预览（Preview）** 常把 `src/...` 误当成网址（
 3. 主方法 Javadoc 补全解法说明
 4. 添加 `main` 方法编写测试用例
 5. 运行 `python3 scripts/generate-readme.py` 刷新本表格
+6. 运行 `python3 scripts/generate-ui-data.py` 刷新可视化面板数据
+
+## 可视化学习面板
+
+项目提供本地 Web 界面，支持按类别/难度/考频筛选、查看解法思路、复制类名与运行命令、标记学习进度。
+
+```bash
+# 生成数据并启动（浏览器打开 http://localhost:8765）
+./scripts/serve-ui.sh
+
+# 或分步执行
+python3 scripts/generate-ui-data.py
+cd ui && python3 -m http.server 8765
+```
+
+IDEA 中也可直接右键 `ui/index.html` → Open in Browser（需先执行 `generate-ui-data.py`）。
