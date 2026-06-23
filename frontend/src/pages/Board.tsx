@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAuth } from "../contexts/AuthContext";
 import { problemsApi, progressApi } from "../lib/api";
@@ -21,9 +21,14 @@ export default function BoardPage() {
   const [showTodoOnly, setShowTodoOnly] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<ProblemDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [detailTab, setDetailTab] = useState<"insight" | "code">("insight");
+  const detailCacheRef = useRef<Map<string, ProblemDetail>>(new Map());
+  const detailRequestRef = useRef(0);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -49,6 +54,32 @@ export default function BoardPage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen || selectedId ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [sidebarOpen, selectedId]);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 960px)");
+    const onChange = () => {
+      if (mq.matches) setSidebarOpen(false);
+    };
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+    if (selectedId) {
+      if (!el.open) el.showModal();
+    } else if (el.open) {
+      el.close();
+    }
+  }, [selectedId]);
 
   const toggleSet = (set: Set<string>, value: string, setter: (s: Set<string>) => void) => {
     const next = new Set(set);
@@ -108,17 +139,48 @@ export default function BoardPage() {
     navigator.clipboard.writeText(text).then(() => showToast("已复制到剪贴板"));
   };
 
-  const openDetail = async (id: string) => {
+  const openDetail = (id: string) => {
     setSelectedId(id);
     setDetailTab("insight");
-    const d = await problemsApi.detail(id);
-    setDetail(d);
+
+    const cached = detailCacheRef.current.get(id);
+    if (cached) {
+      setDetail(cached);
+      setDetailLoading(false);
+      return;
+    }
+
+    setDetail(null);
+    setDetailLoading(true);
+    const reqId = ++detailRequestRef.current;
+    problemsApi
+      .detail(id)
+      .then((d) => {
+        if (reqId !== detailRequestRef.current) return;
+        detailCacheRef.current.set(id, d);
+        setDetail(d);
+      })
+      .finally(() => {
+        if (reqId === detailRequestRef.current) setDetailLoading(false);
+      });
   };
 
   const closeDetail = () => {
+    detailRequestRef.current += 1;
     setSelectedId(null);
     setDetail(null);
+    setDetailLoading(false);
   };
+
+  const selectedSummary = useMemo(
+    () => (selectedId ? problems.find((p) => p.id === selectedId) ?? null : null),
+    [problems, selectedId],
+  );
+
+  const highlightedCode = useMemo(() => {
+    if (!detail || detailTab !== "code") return "";
+    return renderJavaCode(detail.solution_code || "// 暂无代码");
+  }, [detail, detailTab]);
 
   const toggleDone = async () => {
     if (!detail) return;
@@ -146,106 +208,173 @@ export default function BoardPage() {
     showToast("进度已重置");
   };
 
+  const activeFilterCount =
+    difficulties.size + freqLevels.size + categoryFilter.size + (showTodoOnly ? 1 : 0) + (search.trim() ? 1 : 0);
+
+  const clearFilters = () => {
+    setSearch("");
+    setDifficulties(new Set());
+    setFreqLevels(new Set());
+    setCategoryFilter(new Set());
+    setShowTodoOnly(false);
+  };
+
+  const userLabel = user?.email || user?.display_name || "";
+  const userInitial = userLabel ? userLabel.charAt(0).toUpperCase() : "?";
+
   if (loading) {
-    return <div className="login-page">加载题目…</div>;
+    return (
+      <div className="login-page">
+        <div className="loading-state">加载题目…</div>
+      </div>
+    );
   }
 
   return (
-    <div className="app">
-      <aside className="sidebar">
-        <div className="brand">
-          <h1>算法助手</h1>
-          <p>john-algorithm-java</p>
-        </div>
+    <div className={`app${sidebarOpen ? " sidebar-open" : ""}`}>
+      <button
+        type="button"
+        className="sidebar-backdrop"
+        aria-label="关闭筛选"
+        onClick={() => setSidebarOpen(false)}
+      />
 
-        <div className="sidebar-section user-bar">
-          <span className="label">账号</span>
-          <p className="user-email">{user?.email || user?.display_name}</p>
-          <button type="button" className="btn ghost" onClick={logout}>
-            退出登录
+      <aside className={`sidebar${sidebarOpen ? " open" : ""}`}>
+        <div className="sidebar-head">
+          <div className="brand">
+            <h1>算法助手</h1>
+            <p>john-algorithm-java</p>
+          </div>
+          <button
+            type="button"
+            className="icon-btn sidebar-close"
+            aria-label="关闭筛选"
+            onClick={() => setSidebarOpen(false)}
+          >
+            ×
           </button>
         </div>
 
-        <div className="sidebar-section">
-          <label className="label" htmlFor="search">
-            搜索
-          </label>
-          <input
-            id="search"
-            type="search"
-            placeholder="题号 / 标题 / 公司 / 类名…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        <div className="user-chip">
+          <span className="user-avatar" aria-hidden="true">
+            {userInitial}
+          </span>
+          <div className="user-chip-text">
+            <span className="user-chip-label">账号</span>
+            <span className="user-email">{userLabel}</span>
+          </div>
+          <button type="button" className="btn btn-sm ghost user-logout" onClick={logout}>
+            退出
+          </button>
         </div>
 
-        <div className="sidebar-section">
-          <span className="label">难度</span>
-          <div className="chip-group">
-            {(["easy", "medium", "hard"] as const).map((d) => (
-              <button
-                key={d}
-                type="button"
-                className={`chip ${difficulties.has(d) ? "active" : ""}`}
-                onClick={() => toggleSet(difficulties, d, setDifficulties)}
-              >
-                {{ easy: "Easy", medium: "Medium", hard: "Hard" }[d]}
-              </button>
-            ))}
+        <div className="sidebar-body">
+          <div className="sidebar-section">
+            <div className="section-head">
+              <label className="label" htmlFor="search">
+                搜索
+              </label>
+              {activeFilterCount > 0 && (
+                <button type="button" className="text-btn" onClick={clearFilters}>
+                  清除筛选
+                </button>
+              )}
+            </div>
+            <div className="search-field">
+              <input
+                id="search"
+                type="search"
+                placeholder="题号 / 标题 / 公司 / 类名…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              {search && (
+                <button
+                  type="button"
+                  className="search-clear"
+                  aria-label="清空搜索"
+                  onClick={() => setSearch("")}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="sidebar-section">
+            <span className="label">难度</span>
+            <div className="chip-group">
+              {(["easy", "medium", "hard"] as const).map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  className={`chip chip-${d} ${difficulties.has(d) ? "active" : ""}`}
+                  onClick={() => toggleSet(difficulties, d, setDifficulties)}
+                >
+                  {{ easy: "Easy", medium: "Medium", hard: "Hard" }[d]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="sidebar-section">
+            <span className="label">考频</span>
+            <div className="chip-group">
+              {["极高", "高", "中"].map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  className={`chip ${freqLevels.has(f) ? "active" : ""}`}
+                  onClick={() => toggleSet(freqLevels, f, setFreqLevels)}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="sidebar-section sidebar-section-grow">
+            <span className="label">类别</span>
+            <div className="category-list">
+              {categories.map((c) => {
+                const count = problems.filter((p) => p.category === c.key).length;
+                return (
+                  <button
+                    key={c.key}
+                    type="button"
+                    className={`category-item ${categoryFilter.has(c.key) ? "active" : ""}`}
+                    onClick={() => toggleSet(categoryFilter, c.key, setCategoryFilter)}
+                  >
+                    <span className="category-name">{c.label}</span>
+                    <span className="category-count">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        <div className="sidebar-section">
-          <span className="label">考频</span>
-          <div className="chip-group">
-            {["极高", "高", "中"].map((f) => (
-              <button
-                key={f}
-                type="button"
-                className={`chip ${freqLevels.has(f) ? "active" : ""}`}
-                onClick={() => toggleSet(freqLevels, f, setFreqLevels)}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="sidebar-section">
-          <span className="label">类别</span>
-          <div className="category-list">
-            {categories.map((c) => (
-              <button
-                key={c.key}
-                type="button"
-                className={`category-item ${categoryFilter.has(c.key) ? "active" : ""}`}
-                onClick={() => toggleSet(categoryFilter, c.key, setCategoryFilter)}
-              >
-                <span>{c.label}</span>
-                <span>{problems.filter((p) => p.category === c.key).length}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="sidebar-section progress-box">
+        <div className="sidebar-footer progress-box">
           <span className="label">学习进度</span>
           <div className="progress-bar">
-            <div id="progressFill" style={{ width: `${pct}%` }} />
+            <div className="progress-fill" style={{ width: `${pct}%` }} />
           </div>
-          <p id="progressText">
-            {doneCount} / {total} 已完成（{pct}%）
+          <p className="progress-text">
+            <strong>{doneCount}</strong>
+            <span>
+              {" "}
+              / {total} 已完成 · {pct}%
+            </span>
           </p>
           <div className="progress-actions">
             <button
               type="button"
-              id="showTodoBtn"
-              className={`btn ghost ${showTodoOnly ? "active" : ""}`}
+              className={`btn btn-sm ghost ${showTodoOnly ? "active" : ""}`}
               onClick={() => setShowTodoOnly((v) => !v)}
             >
               仅看未完成
             </button>
-            <button type="button" className="btn ghost danger" onClick={resetProgress}>
+            <button type="button" className="btn btn-sm ghost danger" onClick={resetProgress}>
               重置进度
             </button>
           </div>
@@ -253,8 +382,44 @@ export default function BoardPage() {
       </aside>
 
       <main className="main">
+        <header className="mobile-header">
+          <button type="button" className="btn btn-sm mobile-filter-btn" onClick={() => setSidebarOpen(true)}>
+            筛选
+            {activeFilterCount > 0 && <span className="filter-badge">{activeFilterCount}</span>}
+          </button>
+          <div className="mobile-header-title">
+            <strong>算法助手</strong>
+            <span>
+              {doneCount}/{total} · {filtered.length} 题
+            </span>
+          </div>
+          <button type="button" className="btn btn-sm ghost mobile-logout-btn" onClick={logout}>
+            退出
+          </button>
+        </header>
+
         <header className="topbar">
-          <div id="statsCards" className="stats">
+          <div className="topbar-intro">
+            <h2 className="page-title">题目列表</h2>
+            <p className="page-subtitle">
+              共 {filtered.length} 题
+              {activeFilterCount > 0 && " · 已筛选"}
+            </p>
+          </div>
+          <div className="topbar-actions">
+            <select id="sortBy" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
+              <option value="category">按类别</option>
+              <option value="passRateAsc">通过率 ↑（难→易）</option>
+              <option value="passRateDesc">通过率 ↓（易→难）</option>
+              <option value="lcNum">按题号</option>
+            </select>
+            <button type="button" className="btn btn-sm" onClick={loadData}>
+              刷新
+            </button>
+          </div>
+        </header>
+
+        <div id="statsCards" className="stats">
             {stats && (
               <>
                 <div className="stat-card">
@@ -276,18 +441,6 @@ export default function BoardPage() {
               </>
             )}
           </div>
-          <div className="topbar-actions">
-            <select id="sortBy" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
-              <option value="category">按类别</option>
-              <option value="passRateAsc">通过率 ↑（难→易）</option>
-              <option value="passRateDesc">通过率 ↓（易→难）</option>
-              <option value="lcNum">按题号</option>
-            </select>
-            <button type="button" className="btn" onClick={loadData}>
-              刷新数据
-            </button>
-          </div>
-        </header>
 
         <section id="problemGrid" className="grid">
           {filtered.map((p) => (
@@ -313,8 +466,10 @@ export default function BoardPage() {
                 <span className="tag">{shortCompanies(p.companies)}</span>
               </div>
               <div className="card-foot">
-                <span>{progress[p.id] ? "✓ 已完成" : "思路 + Java 实现"}</span>
-                <span>{p.code_lines ? `${p.code_lines} 行` : p.summary || "打开详情"}</span>
+                <span className={`card-status ${progress[p.id] ? "done" : ""}`}>
+                  {progress[p.id] ? "已完成" : "待学习"}
+                </span>
+                <span>{p.code_lines ? `${p.code_lines} 行代码` : p.summary || "查看详情"}</span>
               </div>
             </article>
           ))}
@@ -324,14 +479,21 @@ export default function BoardPage() {
         </div>
       </main>
 
-      {detail && selectedId && (
-        <dialog open className={detailTab === "code" ? "code-mode" : ""} onClose={closeDetail}>
+      {selectedId && selectedSummary && (
+        <dialog
+          ref={dialogRef}
+          className={`detail-dialog${detailTab === "code" ? " code-mode" : ""}`}
+          onClose={closeDetail}
+          onClick={(e) => {
+            if (e.target === dialogRef.current) closeDetail();
+          }}
+        >
           <div className="dialog-header">
-            <div>
+            <div className="dialog-header-main">
               <p className="detail-meta">
-                LeetCode {detail.lc_num} · {detail.category_label} · {detail.difficulty_label}
+                LC {detail?.lc_num ?? selectedSummary.lc_num} · {detail?.category_label ?? selectedSummary.category_label}
               </p>
-              <h2>{detail.title}</h2>
+              <h2>{detail?.title ?? selectedSummary.title}</h2>
             </div>
             <button type="button" className="icon-btn" aria-label="关闭" onClick={closeDetail}>
               ×
@@ -339,10 +501,17 @@ export default function BoardPage() {
           </div>
           <div className="dialog-body">
             <div className="detail-tags">
-              <span className={`tag ${detail.freq_level === "极高" ? "high" : ""}`}>{detail.freq_level}</span>
-              <span className="tag">通过率 {detail.pass_rate}%</span>
-              <span className="tag">{detail.companies}</span>
+              <span className={`badge ${selectedSummary.difficulty}`}>
+                {detail?.difficulty_label ?? selectedSummary.difficulty_label}
+              </span>
+              <span className={`tag ${(detail?.freq_level ?? selectedSummary.freq_level) === "极高" ? "high" : ""}`}>
+                {detail?.freq_level ?? selectedSummary.freq_level}
+              </span>
+              <span className="tag">通过率 {detail?.pass_rate ?? selectedSummary.pass_rate}%</span>
             </div>
+            {(detail?.companies ?? selectedSummary.companies) && (
+              <p className="detail-companies">{detail?.companies ?? selectedSummary.companies}</p>
+            )}
 
             <div className="detail-tabs" role="tablist">
               <button
@@ -356,78 +525,86 @@ export default function BoardPage() {
                 type="button"
                 className={`detail-tab ${detailTab === "code" ? "active" : ""}`}
                 onClick={() => setDetailTab("code")}
+                disabled={detailLoading}
               >
                 Java 实现
               </button>
             </div>
 
-            <div id="panelInsight" className={`detail-panel ${detailTab === "insight" ? "active" : ""}`}>
-              <section>
-                <h3>题目描述</h3>
-                <p>{detail.description || "—"}</p>
-                {detail.example && <p className="example">示例：{detail.example}</p>}
-              </section>
-              <section className="detail-grid insight-cards">
-                <div className="insight-card">
-                  <h3>核心解法</h3>
-                  <p>{detail.approach || "—"}</p>
+            {detailLoading && !detail ? (
+              <div className="detail-loading">
+                <div className="detail-loading-line" />
+                <div className="detail-loading-line short" />
+                <div className="detail-loading-block" />
+                <div className="detail-loading-block" />
+              </div>
+            ) : detail ? (
+              <>
+                <div id="panelInsight" className={`detail-panel ${detailTab === "insight" ? "active" : ""}`}>
+                  <section>
+                    <h3>题目描述</h3>
+                    <p>{detail.description || "—"}</p>
+                    {detail.example && <p className="example">示例：{detail.example}</p>}
+                  </section>
+                  <section className="detail-grid insight-cards">
+                    <div className="insight-card">
+                      <h3>核心解法</h3>
+                      <p>{detail.approach || "—"}</p>
+                    </div>
+                    <div className="insight-card">
+                      <h3>注意点</h3>
+                      <p>{detail.notes || "—"}</p>
+                    </div>
+                    <div className="insight-card">
+                      <h3>疑难点</h3>
+                      <p>{detail.pitfalls || "—"}</p>
+                    </div>
+                  </section>
+                  <section className="detail-actions">
+                    <button type="button" className="copy-chip" onClick={() => copyText(detail.fqn)}>
+                      <span className="copy-chip-label">类名</span>
+                      <code>{detail.class_name}</code>
+                    </button>
+                    <button type="button" className="copy-chip" onClick={() => copyText(detail.idea_path)}>
+                      <span className="copy-chip-label">路径</span>
+                      <code>{detail.idea_path.split("/").pop() || detail.idea_path}</code>
+                    </button>
+                    <button type="button" className="copy-chip" onClick={() => copyText(detail.run_command)}>
+                      <span className="copy-chip-label">命令</span>
+                      <code>点击复制</code>
+                    </button>
+                  </section>
                 </div>
-                <div className="insight-card">
-                  <h3>注意点</h3>
-                  <p>{detail.notes || "—"}</p>
-                </div>
-                <div className="insight-card">
-                  <h3>疑难点</h3>
-                  <p>{detail.pitfalls || "—"}</p>
-                </div>
-              </section>
-              <section className="detail-actions">
-                <div className="copy-row">
-                  <code>{detail.fqn}</code>
-                  <button type="button" className="btn" onClick={() => copyText(detail.fqn)}>
-                    复制类名
-                  </button>
-                </div>
-                <div className="copy-row">
-                  <code>{detail.idea_path}</code>
-                  <button type="button" className="btn" onClick={() => copyText(detail.idea_path)}>
-                    复制路径
-                  </button>
-                </div>
-                <div className="copy-row">
-                  <code>{detail.run_command}</code>
-                  <button type="button" className="btn" onClick={() => copyText(detail.run_command)}>
-                    复制运行命令
-                  </button>
-                </div>
-              </section>
-            </div>
 
-            <div id="panelCode" className={`detail-panel ${detailTab === "code" ? "active" : ""}`}>
-              <div className="code-toolbar">
-                <div className="code-meta">
-                  <span className="code-filename">{detail.class_name}.java</span>
-                  <span className="code-lines">
-                    {detail.code_lines || 0} 行 · {detail.fqn}
-                  </span>
-                </div>
-                <button type="button" className="btn" onClick={() => copyText(detail.solution_code)}>
-                  复制代码
-                </button>
-              </div>
-              <div className="code-panel">
-                <div
-                  className="code-block"
-                  dangerouslySetInnerHTML={{
-                    __html: renderJavaCode(detail.solution_code || "// 暂无代码"),
-                  }}
-                />
-              </div>
-            </div>
+                {detailTab === "code" && (
+                  <div id="panelCode" className="detail-panel active">
+                    <div className="code-toolbar">
+                      <div className="code-meta">
+                        <span className="code-filename">{detail.class_name}.java</span>
+                        <span className="code-lines">
+                          {detail.code_lines || 0} 行 · {detail.fqn}
+                        </span>
+                      </div>
+                      <button type="button" className="btn btn-sm" onClick={() => copyText(detail.solution_code)}>
+                        复制代码
+                      </button>
+                    </div>
+                    <div className="code-panel">
+                      <div className="code-block" dangerouslySetInnerHTML={{ __html: highlightedCode }} />
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : null}
           </div>
           <div className="dialog-footer">
-            <button type="button" className={`btn ${progress[detail.id] ? "" : "primary"}`} onClick={toggleDone}>
-              {progress[detail.id] ? "取消完成标记" : "标记为已完成"}
+            <button
+              type="button"
+              className={`btn btn-block ${progress[selectedId] ? "" : "primary"}`}
+              onClick={toggleDone}
+              disabled={!detail || detailLoading}
+            >
+              {progress[selectedId] ? "取消完成标记" : "标记为已完成"}
             </button>
           </div>
         </dialog>
