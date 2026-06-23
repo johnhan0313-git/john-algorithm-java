@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/types.ts","./src/components/requireauth.tsx","./src/contexts/authcontext.tsx","./src/lib/api.ts","./src/lib/auth.ts","./src/lib/codehighlight.ts","./src/pages/board.tsx","./src/pages/login.tsx"],"version":"5.7.3"}
+{"root":["./src/app.tsx","./src/main.tsx","./src/types.ts","./src/components/brandlogo.tsx","./src/components/requireauth.tsx","./src/contexts/authcontext.tsx","./src/lib/api.ts","./src/lib/auth.ts","./src/lib/codehighlight.ts","./src/pages/board.tsx","./src/pages/login.tsx"],"version":"5.7.3"}

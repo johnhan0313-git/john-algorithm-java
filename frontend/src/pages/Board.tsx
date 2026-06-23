@@ -1,11 +1,52 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import BrandLogo from "../components/BrandLogo";
 import { useAuth } from "../contexts/AuthContext";
 import { problemsApi, progressApi } from "../lib/api";
 import { renderJavaCode, shortCompanies } from "../lib/codeHighlight";
 import type { CategoryMeta, ProblemDetail, ProblemSummary, StatsResponse } from "../types";
 
 type SortBy = "category" | "passRateAsc" | "passRateDesc" | "lcNum";
+
+const SIDEBAR_COLLAPSED_KEY = "algo-sidebar-collapsed";
+
+function readSidebarCollapsed(): boolean {
+  try {
+    return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function IconMenu() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconChevronLeft() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M15 18l-6-6 6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconClose() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 export default function BoardPage() {
   const { user, logout } = useAuth();
@@ -26,9 +67,12 @@ export default function BoardPage() {
   const detailCacheRef = useRef<Map<string, ProblemDetail>>(new Map());
   const detailRequestRef = useRef(0);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const logoutDialogRef = useRef<HTMLDialogElement>(null);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -56,19 +100,20 @@ export default function BoardPage() {
   }, [loadData]);
 
   useEffect(() => {
-    document.body.style.overflow = sidebarOpen || selectedId ? "hidden" : "";
+    document.body.style.overflow = sidebarOpen || selectedId || logoutConfirmOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [sidebarOpen, selectedId]);
+  }, [sidebarOpen, selectedId, logoutConfirmOpen]);
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 960px)");
-    const onChange = () => {
+    const syncLayout = () => {
       if (mq.matches) setSidebarOpen(false);
     };
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
+    syncLayout();
+    mq.addEventListener("change", syncLayout);
+    return () => mq.removeEventListener("change", syncLayout);
   }, []);
 
   useEffect(() => {
@@ -80,6 +125,16 @@ export default function BoardPage() {
       el.close();
     }
   }, [selectedId]);
+
+  useEffect(() => {
+    const el = logoutDialogRef.current;
+    if (!el) return;
+    if (logoutConfirmOpen) {
+      if (!el.open) el.showModal();
+    } else if (el.open) {
+      el.close();
+    }
+  }, [logoutConfirmOpen]);
 
   const toggleSet = (set: Set<string>, value: string, setter: (s: Set<string>) => void) => {
     const next = new Set(set);
@@ -208,6 +263,29 @@ export default function BoardPage() {
     showToast("进度已重置");
   };
 
+  const requestLogout = () => setLogoutConfirmOpen(true);
+
+  const handleLogoutConfirm = () => {
+    setLogoutConfirmOpen(false);
+    logout();
+  };
+
+  const toggleSidebarCollapsed = () => {
+    if (window.matchMedia("(max-width: 959px)").matches) {
+      setSidebarOpen(false);
+      return;
+    }
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  };
+
   const activeFilterCount =
     difficulties.size + freqLevels.size + categoryFilter.size + (showTodoOnly ? 1 : 0) + (search.trim() ? 1 : 0);
 
@@ -231,28 +309,43 @@ export default function BoardPage() {
   }
 
   return (
-    <div className={`app${sidebarOpen ? " sidebar-open" : ""}`}>
+    <div
+      className={`app${sidebarOpen ? " sidebar-open" : ""}${!sidebarOpen && sidebarCollapsed ? " sidebar-collapsed" : ""}`}
+    >
       <button
         type="button"
         className="sidebar-backdrop"
-        aria-label="关闭筛选"
+        aria-label="关闭菜单"
         onClick={() => setSidebarOpen(false)}
       />
 
       <aside className={`sidebar${sidebarOpen ? " open" : ""}`}>
         <div className="sidebar-head">
-          <div className="brand">
-            <h1>算法助手</h1>
-            <p>john-algorithm-java</p>
+          <div className="brand brand-with-logo">
+            <BrandLogo />
+            <div className="brand-text">
+              <h1>算法助手</h1>
+            </div>
           </div>
-          <button
-            type="button"
-            className="icon-btn sidebar-close"
-            aria-label="关闭筛选"
-            onClick={() => setSidebarOpen(false)}
-          >
-            ×
-          </button>
+          <div className="sidebar-head-actions">
+            <button
+              type="button"
+              className="shell-icon-btn sidebar-collapse"
+              aria-label="收起侧栏"
+              title="收起侧栏"
+              onClick={toggleSidebarCollapsed}
+            >
+              <IconChevronLeft />
+            </button>
+            <button
+              type="button"
+              className="shell-icon-btn sidebar-close"
+              aria-label="关闭菜单"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <IconClose />
+            </button>
+          </div>
         </div>
 
         <div className="user-chip">
@@ -263,7 +356,7 @@ export default function BoardPage() {
             <span className="user-chip-label">账号</span>
             <span className="user-email">{userLabel}</span>
           </div>
-          <button type="button" className="btn btn-sm ghost user-logout" onClick={logout}>
+          <button type="button" className="btn btn-sm ghost user-logout" onClick={requestLogout}>
             退出
           </button>
         </div>
@@ -383,28 +476,62 @@ export default function BoardPage() {
 
       <main className="main">
         <header className="mobile-header">
-          <button type="button" className="btn btn-sm mobile-filter-btn" onClick={() => setSidebarOpen(true)}>
-            筛选
+          <button
+            type="button"
+            className="shell-icon-btn mobile-menu-btn"
+            aria-label="打开菜单"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <IconMenu />
             {activeFilterCount > 0 && <span className="filter-badge">{activeFilterCount}</span>}
           </button>
-          <div className="mobile-header-title">
-            <strong>算法助手</strong>
-            <span>
-              {doneCount}/{total} · {filtered.length} 题
-            </span>
+
+          <div className="mobile-header-brand">
+            <BrandLogo size="sm" />
+            <strong className="mobile-header-title">算法助手</strong>
           </div>
-          <button type="button" className="btn btn-sm ghost mobile-logout-btn" onClick={logout}>
-            退出
-          </button>
+
+          <div className="mobile-header-spacer" aria-hidden="true" />
         </header>
+
+        <div className="mobile-toolbar">
+          <span className="mobile-toolbar-label">
+            {activeFilterCount > 0 ? `已筛选 ${filtered.length} 题` : `共 ${filtered.length} 题`}
+            <span className="toolbar-progress-hint">
+              {" "}
+              · 已完成 {doneCount}/{total}
+            </span>
+          </span>
+          <select id="sortByMobile" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
+            <option value="category">按类别</option>
+            <option value="passRateAsc">通过率 ↑</option>
+            <option value="passRateDesc">通过率 ↓</option>
+            <option value="lcNum">按题号</option>
+          </select>
+        </div>
 
         <header className="topbar">
           <div className="topbar-intro">
-            <h2 className="page-title">题目列表</h2>
-            <p className="page-subtitle">
-              共 {filtered.length} 题
-              {activeFilterCount > 0 && " · 已筛选"}
-            </p>
+            <button
+              type="button"
+              className="shell-icon-btn sidebar-expand"
+              aria-label="展开侧栏"
+              title="展开侧栏"
+              onClick={toggleSidebarCollapsed}
+            >
+              <IconMenu />
+            </button>
+            <div className="topbar-intro-text">
+              <h2 className="page-title">题目列表</h2>
+              <p className="page-subtitle">
+                共 {filtered.length} 题
+                {activeFilterCount > 0 && " · 已筛选"}
+                <span className="toolbar-progress-hint">
+                  {" "}
+                  · 已完成 {doneCount}/{total}
+                </span>
+              </p>
+            </div>
           </div>
           <div className="topbar-actions">
             <select id="sortBy" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
@@ -413,9 +540,6 @@ export default function BoardPage() {
               <option value="passRateDesc">通过率 ↓（易→难）</option>
               <option value="lcNum">按题号</option>
             </select>
-            <button type="button" className="btn btn-sm" onClick={loadData}>
-              刷新
-            </button>
           </div>
         </header>
 
@@ -609,6 +733,28 @@ export default function BoardPage() {
           </div>
         </dialog>
       )}
+
+      <dialog
+        ref={logoutDialogRef}
+        className="confirm-dialog"
+        onClose={() => setLogoutConfirmOpen(false)}
+        onClick={(e) => {
+          if (e.target === logoutDialogRef.current) setLogoutConfirmOpen(false);
+        }}
+      >
+        <div className="confirm-body">
+          <h3>退出登录</h3>
+          <p>确定要退出当前账号吗？</p>
+        </div>
+        <div className="confirm-actions">
+          <button type="button" className="btn ghost" onClick={() => setLogoutConfirmOpen(false)}>
+            取消
+          </button>
+          <button type="button" className="btn primary" onClick={handleLogoutConfirm}>
+            退出
+          </button>
+        </div>
+      </dialog>
 
       <div className={`toast ${toast ? "show" : ""}`}>{toast}</div>
     </div>
