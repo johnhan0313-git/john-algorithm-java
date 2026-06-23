@@ -119,15 +119,6 @@ select:focus-visible {
   filter: drop-shadow(0 2px 8px rgba(99, 102, 241, 0.14));
 }
 
-.brand-logo-pi {
-  fill: #4338ca;
-  font-size: 22px;
-  font-weight: 600;
-  font-style: italic;
-  font-family: Georgia, "Songti SC", "Times New Roman", serif;
-  letter-spacing: -0.04em;
-}
-
 .brand-logo-md svg {
   width: 40px;
   height: 40px;
