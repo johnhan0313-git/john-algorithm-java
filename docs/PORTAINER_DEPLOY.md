@@ -1,88 +1,124 @@
-# Portainer 部署
+# john-server 生产部署
 
-## 1. 一次性：john-server 创建 PG 库
+仓库：<https://github.com/johnhan0313-git/john-algorithm-java>
 
-在**本机**（需能 ssh john-server）：
+## 部署方式选择
+
+| 方式 | 适用 | 稳定性 |
+|------|------|--------|
+| **SSH + deploy 脚本（推荐）** | 日常发版、改环境变量 | 高，不依赖服务器访问 GitHub |
+| Portainer Git Stack | 偶尔 Pull and redeploy | **低**，john-server 到 GitHub 经常 EOF / 超时 |
+
+Portainer Git Stack 常见问题：
+
+| 现象 | 原因 | 处理 |
+|------|------|------|
+| `clone ... EOF` | 代理/TLS 不稳定 | 重试 Pull，或改用 deploy 脚本 |
+| **界面一直转圈、无容器** | **Git 已成功，卡在 `docker build` 的 pip/npm** | 见下 |
+
+**build 很慢**：Portainer 构建时 pip 若走 mihomo 代理访问 PyPI，速度仅 ~15 KB/s，backend 镜像可能要 **20–40 分钟**。本项目 Dockerfile 已改为**国内 PyPI / npm 镜像且构建时禁用代理**，更新代码后重新 Deploy 会快很多。
+
+部署过程中可在 john-server 上看进度：
 
 ```bash
-chmod +x scripts/init-john-server.sh scripts/bootstrap-prod-db.sh
-./scripts/init-john-server.sh
+docker logs -f portainer 2>&1 | tail -20
 ```
 
-会创建：
+---
 
-- 用户 `john-algorithm` / 密码 `john-algorithm-123`
-- 生产库 `john-algorithm`
-- 测试库 `john-algorithm-test`
+## 推荐：SSH 部署脚本
 
-## 2. Portainer Stack
-
-- Stack 文件：[docker-compose.prod.yml](../docker-compose.prod.yml)
-- Git 仓库拉取后 Build & Deploy
-- 确认 external networks 存在：`john-postgresql_default`、`john-redis_default`
-
-### Stack 环境变量（Portainer UI 填写）
-
-| 变量 | 示例 | 必填 |
-|------|------|------|
-| `JWT_SECRET` | 随机长字符串 | 是 |
-| `SYNC_API_KEY` | 随机字符串 | 是 |
-| `SMTP_HOST` | smtp.163.com | 是（发验证码） |
-| `SMTP_PORT` | 465 | 是 |
-| `SMTP_USER` | your@163.com | 是 |
-| `SMTP_PASSWORD` | 授权码 | 是 |
-| `SMTP_FROM` | your@163.com | 是 |
-| `CORS_ORIGINS` | `https://你的域名,http://服务器IP:3004` | 按需 |
-
-`docker-compose.prod.yml` 已内置：
-
-- `DATABASE_URL` → `john-algorithm`（生产库）
-- `REDIS_URL` → `redis://john-redis:6379/2`
-- `AUTH_EXPOSE_CODES=false`
-- `JWT_EXPIRE_MINUTES=720`
-
-容器启动时 **backend 自动执行 `alembic upgrade head` 建表**。
-
-## 3. 首次部署后：同步题目到生产库
-
-Stack 跑起来后，在**能访问 Docker 内网或 Tailscale PG** 的机器上执行一次：
+### 1. john-server 首次准备
 
 ```bash
-# 方式 A：ssh 到 john-server，在仓库目录
-cd john-algorithm-java/backend
-source .venv/bin/activate
-./../scripts/bootstrap-prod-db.sh
+# 本机：创建 PG 库（若尚未执行）
+./scripts/init-john-server.sh
 
-# 方式 B：本地 Tailscale 直连生产库（慎用，确认 URL 无 -test）
+# 服务器：创建配置目录与密钥文件（不要提交 git）
+ssh john-server 'mkdir -p ~/apps/john-algorithm-java'
+scp .env.prod.example john-server:~/apps/john-algorithm-java/.env.prod
+# ssh 上去编辑 .env.prod，填入 JWT_SECRET、SYNC_API_KEY、SMTP_* 等
+```
+
+生产库表结构与题目若尚未初始化（可选，容器 migration 也会建表）：
+
+```bash
 DATABASE_URL='postgresql+psycopg://john-algorithm:john-algorithm-123@john-server:5432/john-algorithm' \
   ./scripts/bootstrap-prod-db.sh
 ```
 
-或仅同步（表已由容器 migration 建好）：
+### 2. 本机发版
 
 ```bash
-DATABASE_URL='postgresql+psycopg://john-algorithm:john-algorithm-123@john-server:5432/john-algorithm' \
-  python3 scripts/sync-problems.py
+git push
+chmod +x scripts/deploy-john-server.sh
+./scripts/deploy-john-server.sh
 ```
 
-## 4. 访问
+脚本会 rsync 代码到 `~/apps/john-algorithm-java`，在服务器上 `docker compose -f docker-compose.prod.yml up -d --build`。
+
+仅改环境变量时，编辑服务器 `~/apps/john-algorithm-java/.env.prod` 后再跑一遍脚本即可。
+
+---
+
+## 备选：Portainer Git Stack
+
+网络通畅时可用；若 Pull 失败但容器仍在跑，**不要反复点 Pull**，改用上面的 SSH 脚本。
+
+### 让 Portainer 走 mihomo 代理
+
+john-server 上 mihomo 监听 `7890`（HTTP）。Portainer 需配置：
+
+```yaml
+# ~/portainer/portainer-compose.yaml
+extra_hosts:
+  - "host.docker.internal:host-gateway"
+environment:
+  HTTP_PROXY: http://host.docker.internal:7890
+  HTTPS_PROXY: http://host.docker.internal:7890
+  NO_PROXY: localhost,127.0.0.1,192.168.0.0/16,10.0.0.0/8,172.16.0.0/12
+```
+
+修改后 `docker compose up -d` 重启 Portainer。**mihomo 必须保持运行**。
+
+### Portainer 步骤
+
+1. Stacks → Add stack → **Git repository**
+2. URL：`https://github.com/johnhan0313-git/john-algorithm-java.git`
+3. Compose path：`docker-compose.prod.yml`
+4. 环境变量：`JWT_SECRET`、`SYNC_API_KEY`、`SMTP_*`、`CORS_ORIGINS`
+5. Deploy
+
+---
+
+## 环境变量
+
+| 变量 | 生产值 | 必填 |
+|------|--------|------|
+| `JWT_SECRET` | 随机长字符串 | 是 |
+| `SYNC_API_KEY` | 随机字符串 | 是 |
+| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASSWORD` / `SMTP_FROM` | 163 等 | 是 |
+| `CORS_ORIGINS` | 前端访问域名 | 按需 |
+
+`docker-compose.prod.yml` 已内置：
+
+- `DATABASE_URL` → `john-postgresql:5432/john-algorithm`
+- `REDIS_URL` → `redis://john-redis:6379/2`
+- `JWT_EXPIRE_MINUTES=720`
+- `AUTH_EXPOSE_CODES=false`
+
+---
+
+## 访问
 
 | 服务 | 地址 |
 |------|------|
 | 前端 | `http://<john-server>:3004` |
 | API 文档 | `http://<john-server>:8004/docs` |
 
-## 5. 本地开发 vs 生产
+## 本地开发 vs 生产
 
-| | 本地 `./run.sh` | Portainer 生产 |
-|--|----------------|----------------|
+| | 本地 `./run.sh` | 生产 |
+|--|----------------|------|
 | 数据库 | `john-algorithm-test` | `john-algorithm` |
-| Redis | `john-server:6379/2` | `john-redis:6379/2` |
-| 验证码 dev_code | `AUTH_EXPOSE_CODES=true` | `false` |
-
-本地初始化测试库：
-
-```bash
-./scripts/bootstrap-test-env.sh
-./run.sh start
-```
+| 部署 | `./scripts/bootstrap-test-env.sh` | `./scripts/deploy-john-server.sh` |

@@ -14,6 +14,8 @@ if os.environ["DATABASE_URL"].startswith("postgresql"):
 import pytest
 from fastapi.testclient import TestClient
 
+# pytest / httpx 见 requirements-dev.txt
+
 from app.config import get_settings
 from app.database import init_db, reset_engine_for_tests
 from app.main import app
