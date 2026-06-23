@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import BrandLogo from "../components/BrandLogo";
+import PageHeader from "../components/PageHeader";
 import { useAuth } from "../contexts/AuthContext";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { problemsApi, progressApi } from "../lib/api";
+import { DRAWER_LAYOUT_MQ } from "../lib/breakpoints";
 import { renderJavaCode, shortCompanies } from "../lib/codeHighlight";
 import type { CategoryMeta, ProblemDetail, ProblemSummary, StatsResponse } from "../types";
 
@@ -16,14 +19,6 @@ function readSidebarCollapsed(): boolean {
   } catch {
     return false;
   }
-}
-
-function IconMenu() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
 }
 
 function IconChevronLeft() {
@@ -73,6 +68,7 @@ export default function BoardPage() {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed);
+  const isDrawerLayout = useMediaQuery(DRAWER_LAYOUT_MQ);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -107,14 +103,8 @@ export default function BoardPage() {
   }, [sidebarOpen, selectedId, logoutConfirmOpen]);
 
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 960px)");
-    const syncLayout = () => {
-      if (mq.matches) setSidebarOpen(false);
-    };
-    syncLayout();
-    mq.addEventListener("change", syncLayout);
-    return () => mq.removeEventListener("change", syncLayout);
-  }, []);
+    if (!isDrawerLayout) setSidebarOpen(false);
+  }, [isDrawerLayout]);
 
   useEffect(() => {
     const el = dialogRef.current;
@@ -271,7 +261,7 @@ export default function BoardPage() {
   };
 
   const toggleSidebarCollapsed = () => {
-    if (window.matchMedia("(max-width: 959px)").matches) {
+    if (isDrawerLayout) {
       setSidebarOpen(false);
       return;
     }
@@ -299,6 +289,14 @@ export default function BoardPage() {
 
   const userLabel = user?.email || user?.display_name || "";
   const userInitial = userLabel ? userLabel.charAt(0).toUpperCase() : "?";
+  const showSidebar = !isDrawerLayout || sidebarOpen;
+  const showSidebarBackdrop = isDrawerLayout && sidebarOpen;
+  const showMenuButton = isDrawerLayout || sidebarCollapsed;
+
+  const onPageMenuClick = () => {
+    if (isDrawerLayout) setSidebarOpen(true);
+    else toggleSidebarCollapsed();
+  };
 
   if (loading) {
     return (
@@ -312,13 +310,16 @@ export default function BoardPage() {
     <div
       className={`app${sidebarOpen ? " sidebar-open" : ""}${!sidebarOpen && sidebarCollapsed ? " sidebar-collapsed" : ""}`}
     >
-      <button
-        type="button"
-        className="sidebar-backdrop"
-        aria-label="关闭菜单"
-        onClick={() => setSidebarOpen(false)}
-      />
+      {showSidebarBackdrop && (
+        <button
+          type="button"
+          className="sidebar-backdrop"
+          aria-label="关闭菜单"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
+      {showSidebar && (
       <aside className={`sidebar${sidebarOpen ? " open" : ""}`}>
         <div className="sidebar-head">
           <div className="brand brand-with-logo">
@@ -473,75 +474,20 @@ export default function BoardPage() {
           </div>
         </div>
       </aside>
+      )}
 
       <main className="main">
-        <header className="mobile-header">
-          <button
-            type="button"
-            className="shell-icon-btn mobile-menu-btn"
-            aria-label="打开菜单"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <IconMenu />
-            {activeFilterCount > 0 && <span className="filter-badge">{activeFilterCount}</span>}
-          </button>
-
-          <div className="mobile-header-brand">
-            <BrandLogo size="sm" />
-            <strong className="mobile-header-title">算法助手</strong>
-          </div>
-
-          <div className="mobile-header-spacer" aria-hidden="true" />
-        </header>
-
-        <div className="mobile-toolbar">
-          <span className="mobile-toolbar-label">
-            {activeFilterCount > 0 ? `已筛选 ${filtered.length} 题` : `共 ${filtered.length} 题`}
-            <span className="toolbar-progress-hint">
-              {" "}
-              · 已完成 {doneCount}/{total}
-            </span>
-          </span>
-          <select id="sortByMobile" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
-            <option value="category">按类别</option>
-            <option value="passRateAsc">通过率 ↑</option>
-            <option value="passRateDesc">通过率 ↓</option>
-            <option value="lcNum">按题号</option>
-          </select>
-        </div>
-
-        <header className="topbar">
-          <div className="topbar-intro">
-            <button
-              type="button"
-              className="shell-icon-btn sidebar-expand"
-              aria-label="展开侧栏"
-              title="展开侧栏"
-              onClick={toggleSidebarCollapsed}
-            >
-              <IconMenu />
-            </button>
-            <div className="topbar-intro-text">
-              <h2 className="page-title">题目列表</h2>
-              <p className="page-subtitle">
-                共 {filtered.length} 题
-                {activeFilterCount > 0 && " · 已筛选"}
-                <span className="toolbar-progress-hint">
-                  {" "}
-                  · 已完成 {doneCount}/{total}
-                </span>
-              </p>
-            </div>
-          </div>
-          <div className="topbar-actions">
-            <select id="sortBy" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
-              <option value="category">按类别</option>
-              <option value="passRateAsc">通过率 ↑（难→易）</option>
-              <option value="passRateDesc">通过率 ↓（易→难）</option>
-              <option value="lcNum">按题号</option>
-            </select>
-          </div>
-        </header>
+        <PageHeader
+          filteredCount={filtered.length}
+          activeFilterCount={activeFilterCount}
+          doneCount={doneCount}
+          total={total}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          onMenuClick={onPageMenuClick}
+          menuLabel={isDrawerLayout ? "打开菜单" : "展开侧栏"}
+          showMenuButton={showMenuButton}
+        />
 
         <div id="statsCards" className="stats">
             {stats && (

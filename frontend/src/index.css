@@ -23,6 +23,7 @@
   --radius-sm: 8px;
   --radius-lg: 14px;
   --ease: 0.18s ease;
+  --layout-sidebar-width: 272px;
 }
 
 * { box-sizing: border-box; }
@@ -39,8 +40,11 @@ body {
 }
 
 html {
+  width: 100%;
   overflow-x: hidden;
   max-width: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 #root {
@@ -66,7 +70,7 @@ select:focus-visible {
 }
 
 .app {
-  --sidebar-width: 272px;
+  --sidebar-width: var(--layout-sidebar-width);
   display: grid;
   grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
   min-height: 100vh;
@@ -452,16 +456,11 @@ select:focus-visible {
   display: none !important;
 }
 
-.sidebar-collapse,
-.sidebar-expand {
+.sidebar-collapse {
   display: none !important;
 }
 
 .sidebar-backdrop {
-  display: none;
-}
-
-.mobile-header {
   display: none;
 }
 
@@ -487,26 +486,54 @@ select:focus-visible {
   max-width: 1280px;
   min-width: 0;
   width: 100%;
+  container-type: inline-size;
+  container-name: main;
 }
 
-.topbar {
+/* ── Page header (responsive: one component, two layouts) ── */
+
+.page-header {
   display: flex;
-  justify-content: space-between;
   align-items: flex-end;
+  justify-content: space-between;
   gap: 16px;
   margin-bottom: 16px;
+  min-width: 0;
 }
 
-.topbar-intro {
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
+.page-header-menu,
+.page-header-menu-placeholder {
+  display: none;
+  flex-shrink: 0;
+}
+
+.app.sidebar-collapsed .page-header-menu {
+  display: inline-flex;
+}
+
+.page-header-brand,
+.page-header-summary,
+.page-header-spacer {
+  display: none;
+}
+
+.page-header-intro {
   flex: 1;
   min-width: 0;
 }
 
-.topbar-intro-text {
-  min-width: 0;
+.page-header-app-name {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.page-header-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
 }
 
 .page-title {
@@ -525,13 +552,6 @@ select:focus-visible {
 .toolbar-progress-hint {
   color: var(--muted);
   font-weight: 500;
-}
-
-.topbar-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-shrink: 0;
 }
 
 select {
@@ -599,6 +619,12 @@ select:hover {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(268px, 100%), 1fr));
   gap: 12px;
+}
+
+@container main (max-width: 639px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .card {
@@ -1366,50 +1392,13 @@ dialog.confirm-dialog::backdrop {
   width: 100%;
 }
 
-/* ── Mobile ── */
+/* ── Drawer layout (< lg / 1024px) ── */
 
-.mobile-header {
-  display: none;
-}
-
-.mobile-toolbar {
-  display: none;
-}
-
-.mobile-header-brand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.mobile-header-title {
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.mobile-header-spacer {
-  width: 40px;
-  flex-shrink: 0;
-}
-
-.mobile-toolbar-label {
-  flex: 1;
-  min-width: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-@media (max-width: 959px) {
+@media (max-width: 1023px) {
   html,
   body,
   #root {
-    overflow-x: clip;
+    overflow-x: hidden;
     width: 100%;
     max-width: 100%;
   }
@@ -1422,12 +1411,13 @@ dialog.confirm-dialog::backdrop {
   }
 
   .app {
-    display: block;
+    display: flex;
+    flex-direction: column;
     min-height: 100vh;
     min-height: 100dvh;
     width: 100%;
     max-width: 100%;
-    overflow-x: clip;
+    overflow-x: hidden;
     touch-action: pan-y;
   }
 
@@ -1437,22 +1427,21 @@ dialog.confirm-dialog::backdrop {
     left: 0;
     bottom: 0;
     z-index: 120;
-    width: min(85vw, 300px);
+    width: min(300px, calc(100% - 24px));
     max-width: 300px;
     padding-top: max(14px, env(safe-area-inset-top));
     padding-bottom: max(14px, env(safe-area-inset-bottom));
-    transform: translateX(-100%);
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: none;
-    visibility: hidden;
-    pointer-events: none;
+    box-shadow: 8px 0 40px rgba(17, 24, 39, 0.12);
+    animation: sidebar-slide-in 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .sidebar.open {
-    transform: translateX(0);
-    visibility: visible;
-    pointer-events: auto;
-    box-shadow: 8px 0 40px rgba(17, 24, 39, 0.12);
+  @keyframes sidebar-slide-in {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
   }
 
   .sidebar-close {
@@ -1482,12 +1471,15 @@ dialog.confirm-dialog::backdrop {
     pointer-events: auto;
   }
 
-  .mobile-header {
+  .page-header {
     display: grid;
-    grid-template-columns: 40px minmax(0, 1fr) 40px;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "menu brand spacer"
+      "summary summary sort";
     align-items: center;
-    gap: 8px;
-    margin: 0 0 10px;
+    gap: 8px 10px;
+    margin-bottom: 12px;
     padding: 10px 12px;
     position: sticky;
     top: 0;
@@ -1495,7 +1487,6 @@ dialog.confirm-dialog::backdrop {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    overflow: hidden;
     background: rgba(255, 255, 255, 0.88);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -1504,44 +1495,65 @@ dialog.confirm-dialog::backdrop {
     box-shadow: 0 4px 20px rgba(17, 24, 39, 0.06);
   }
 
-  .mobile-menu-btn {
-    justify-self: start;
+  .page-header-menu {
+    grid-area: menu;
+    display: inline-flex !important;
   }
 
-  .mobile-header-spacer {
-    justify-self: end;
+  .page-header-menu-placeholder {
+    display: none;
   }
 
-  .mobile-toolbar {
+  .page-header-brand {
+    grid-area: brand;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 12px;
-    padding: 10px 12px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
+    justify-content: center;
+    gap: 8px;
+    min-width: 0;
   }
 
-  .mobile-toolbar select {
-    flex-shrink: 0;
+  .page-header-spacer {
+    grid-area: spacer;
+    display: block;
+    width: 40px;
+  }
+
+  .page-header-intro {
+    display: none;
+  }
+
+  .page-header-summary {
+    grid-area: summary;
+    display: block;
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    min-width: 0;
+  }
+
+  .page-header-actions {
+    grid-area: sort;
+  }
+
+  .page-header-actions select {
     max-width: 132px;
     padding: 6px 28px 6px 10px;
     font-size: 12px;
-    border-radius: var(--radius-sm);
   }
 
   .main {
-    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    flex: 1;
+    min-width: 0;
+    padding: max(12px, env(safe-area-inset-top)) 12px max(24px, env(safe-area-inset-bottom));
     max-width: 100%;
     width: 100%;
     box-sizing: border-box;
-    overflow-x: clip;
+    overflow-x: hidden;
   }
 
-  .mobile-toolbar,
+  .page-header,
   .stats,
   .grid {
     width: 100%;
@@ -1555,23 +1567,23 @@ dialog.confirm-dialog::backdrop {
     max-width: 100%;
     min-width: 0;
     padding: 14px;
+    overflow: hidden;
+  }
+
+  .card-head {
+    flex-wrap: wrap;
+  }
+
+  .card-head h3 {
+    flex: 1 1 140px;
   }
 
   .card:active {
     transform: none;
   }
 
-  .grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
-  }
-
   .category-list {
     max-height: 32vh;
-  }
-
-  .topbar {
-    display: none;
   }
 
   .stats {
@@ -1667,9 +1679,25 @@ dialog.confirm-dialog::backdrop {
   .progress-actions .btn {
     flex: 1;
   }
+
+  .login-page {
+    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  }
+
+  .login-card {
+    padding: 24px 20px;
+  }
+
+  .login-code-row {
+    flex-direction: column;
+  }
+
+  .login-code-row .btn {
+    width: 100%;
+  }
 }
 
-@media (min-width: 960px) {
+@media (min-width: 1024px) {
   .sidebar-backdrop {
     display: none !important;
   }
@@ -1689,37 +1717,6 @@ dialog.confirm-dialog::backdrop {
     opacity: 0;
     pointer-events: none;
   }
-
-  .app:not(.sidebar-collapsed) .sidebar-expand {
-    display: none !important;
-  }
-
-  .app.sidebar-collapsed .sidebar-expand {
-    display: inline-flex !important;
-    flex-shrink: 0;
-  }
-
-  .topbar-intro {
-    align-items: center;
-  }
-}
-
-@media (max-width: 959px) {
-  .login-page {
-    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
-  }
-
-  .login-card {
-    padding: 24px 20px;
-  }
-
-  .login-code-row {
-    flex-direction: column;
-  }
-
-  .login-code-row .btn {
-    width: 100%;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1730,6 +1727,10 @@ dialog.confirm-dialog::backdrop {
 
   dialog.detail-dialog,
   dialog.detail-dialog.code-mode {
+    animation: none;
+  }
+
+  .sidebar {
     animation: none;
   }
 }
