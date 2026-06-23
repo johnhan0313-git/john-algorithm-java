@@ -631,15 +631,18 @@ export default function BoardPage() {
               <span className={`tag ${(detail?.freq_level ?? selectedSummary.freq_level) === "极高" ? "high" : ""}`}>
                 {detail?.freq_level ?? selectedSummary.freq_level}
               </span>
-              <span className="tag">通过率 {detail?.pass_rate ?? selectedSummary.pass_rate}%</span>
             </div>
-            {(detail?.companies ?? selectedSummary.companies) && (
-              <p className="detail-companies">{detail?.companies ?? selectedSummary.companies}</p>
-            )}
-
-            <div className="detail-tabs" role="tablist">
+            <div className="detail-meta-line">
+              <span className="detail-companies">
+                {(detail?.companies ?? selectedSummary.companies) || "—"}
+              </span>
+              <span className="detail-pass-rate">通过率 {detail?.pass_rate ?? selectedSummary.pass_rate}%</span>
+            </div>
+            <div className="detail-tabs" role="tablist" aria-label="题目详情">
               <button
                 type="button"
+                role="tab"
+                aria-selected={detailTab === "insight"}
                 className={`detail-tab ${detailTab === "insight" ? "active" : ""}`}
                 onClick={() => setDetailTab("insight")}
               >
@@ -647,6 +650,8 @@ export default function BoardPage() {
               </button>
               <button
                 type="button"
+                role="tab"
+                aria-selected={detailTab === "code"}
                 className={`detail-tab ${detailTab === "code" ? "active" : ""}`}
                 onClick={() => setDetailTab("code")}
                 disabled={detailLoading}
@@ -664,38 +669,28 @@ export default function BoardPage() {
               </div>
             ) : detail ? (
               <>
-                <div id="panelInsight" className={`detail-panel ${detailTab === "insight" ? "active" : ""}`}>
+                <div id="panelInsight" className={`detail-panel detail-prose ${detailTab === "insight" ? "active" : ""}`}>
                   <section>
                     <h3>题目描述</h3>
                     <p>{detail.description || "—"}</p>
                     {detail.example && <p className="example">示例：{detail.example}</p>}
                   </section>
-                  <section className="detail-grid insight-cards">
-                    <div className="insight-card">
-                      <h3>核心解法</h3>
-                      <p>{detail.approach || "—"}</p>
-                    </div>
-                    <div className="insight-card">
-                      <h3>注意点</h3>
-                      <p>{detail.notes || "—"}</p>
-                    </div>
-                    <div className="insight-card">
-                      <h3>疑难点</h3>
-                      <p>{detail.pitfalls || "—"}</p>
-                    </div>
+                  <section>
+                    <h3>核心解法</h3>
+                    <p>{detail.approach || "—"}</p>
+                  </section>
+                  <section>
+                    <h3>注意点</h3>
+                    <p>{detail.notes || "—"}</p>
+                  </section>
+                  <section>
+                    <h3>疑难点</h3>
+                    <p>{detail.pitfalls || "—"}</p>
                   </section>
                   <section className="detail-actions">
                     <button type="button" className="copy-chip" onClick={() => copyText(detail.fqn)}>
                       <span className="copy-chip-label">类名</span>
                       <code>{detail.class_name}</code>
-                    </button>
-                    <button type="button" className="copy-chip" onClick={() => copyText(detail.idea_path)}>
-                      <span className="copy-chip-label">路径</span>
-                      <code>{detail.idea_path.split("/").pop() || detail.idea_path}</code>
-                    </button>
-                    <button type="button" className="copy-chip" onClick={() => copyText(detail.run_command)}>
-                      <span className="copy-chip-label">命令</span>
-                      <code>点击复制</code>
                     </button>
                   </section>
                 </div>

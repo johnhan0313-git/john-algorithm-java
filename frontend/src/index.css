@@ -33,6 +33,11 @@ body {
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+html {
+  overflow-x: hidden;
 }
 
 button, input, select {
@@ -596,7 +601,12 @@ select:hover {
 .card:hover {
   border-color: rgba(37, 99, 235, 0.3);
   box-shadow: var(--shadow);
-  transform: translateY(-1px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    transform: translateY(-1px);
+  }
 }
 
 .card.done {
@@ -621,6 +631,9 @@ select:hover {
   font-weight: 600;
   line-height: 1.35;
   letter-spacing: -0.01em;
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .badge {
@@ -657,6 +670,10 @@ select:hover {
   border-radius: 999px;
   background: var(--bg);
   color: var(--muted);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tag.high {
@@ -671,8 +688,19 @@ select:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   font-size: 11px;
   color: var(--muted);
+  min-width: 0;
+}
+
+.card-foot span {
+  min-width: 0;
+}
+
+.card-foot span:last-child {
+  flex-shrink: 0;
+  text-align: right;
 }
 
 .card-status {
@@ -869,6 +897,12 @@ dialog.confirm-dialog::backdrop {
   min-width: 0;
 }
 
+.detail-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .dialog-header h2 {
   margin: 4px 0 0;
   font-size: 18px;
@@ -892,19 +926,28 @@ dialog.confirm-dialog::backdrop {
   padding: 0 20px 20px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  background: var(--panel);
 }
 
-.detail-meta {
-  margin: 0;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.detail-companies {
-  margin: -6px 0 14px;
+.detail-meta-line {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
   font-size: 12px;
   color: var(--muted);
   line-height: 1.5;
+}
+
+.detail-companies {
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-pass-rate {
+  flex-shrink: 0;
+  color: var(--muted);
 }
 
 .detail-tags {
@@ -912,7 +955,7 @@ dialog.confirm-dialog::backdrop {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  margin: 14px 0 8px;
+  margin: 14px 0 6px;
 }
 
 .detail-tags .badge {
@@ -940,6 +983,11 @@ dialog.confirm-dialog::backdrop {
   color: var(--muted);
   cursor: pointer;
   text-align: center;
+  transition: background var(--ease), color var(--ease), box-shadow var(--ease);
+}
+
+.detail-tab:hover:not(.active):not(:disabled) {
+  color: var(--text);
 }
 
 .detail-tab.active {
@@ -955,6 +1003,61 @@ dialog.confirm-dialog::backdrop {
 
 .detail-panel.active {
   display: block;
+}
+
+.detail-prose {
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.detail-prose section + section {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.detail-prose h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.detail-prose p {
+  margin: 0;
+}
+
+.detail-prose .example {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #334155;
+}
+
+.detail-actions {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.copy-chip {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  cursor: pointer;
+  text-align: left;
 }
 
 .detail-loading {
@@ -992,28 +1095,6 @@ dialog.confirm-dialog::backdrop {
 .detail-tab:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-.detail-grid,
-.insight-cards {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-
-.insight-card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-}
-
-.insight-card h3 {
-  margin: 0 0 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--accent);
-  letter-spacing: 0.02em;
 }
 
 .code-toolbar {
@@ -1094,48 +1175,6 @@ dialog.confirm-dialog::backdrop {
 .hl-cm { color: #94a3b8; font-style: italic; }
 .hl-ann { color: #be185d; }
 
-.detail-grid h3, .dialog-body section > h3 {
-  margin: 0 0 8px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.detail-grid p, .dialog-body p {
-  margin: 0;
-  line-height: 1.65;
-  color: #374151;
-  font-size: 14px;
-}
-
-.example {
-  margin-top: 8px;
-  padding: 10px 12px;
-  background: var(--bg);
-  border-radius: var(--radius-sm);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 13px;
-}
-
-.detail-actions {
-  margin-top: 16px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.copy-chip {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--bg);
-  cursor: pointer;
-  text-align: left;
-}
-
 .copy-chip:hover {
   border-color: var(--border-strong);
   background: #fff;
@@ -1149,7 +1188,8 @@ dialog.confirm-dialog::backdrop {
 
 .copy-chip code {
   display: block;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
   color: var(--text);
@@ -1159,6 +1199,7 @@ dialog.confirm-dialog::backdrop {
   background: none;
   padding: 0;
   border-radius: 0;
+  text-align: right;
 }
 
 .btn-block {
@@ -1352,12 +1393,16 @@ dialog.confirm-dialog::backdrop {
     background:
       radial-gradient(ellipse 120% 80% at 50% -20%, rgba(37, 99, 235, 0.08), transparent 55%),
       var(--bg);
+    overscroll-behavior-x: none;
   }
 
   .app {
     display: block;
     min-height: 100vh;
     min-height: 100dvh;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   .sidebar {
@@ -1412,11 +1457,13 @@ dialog.confirm-dialog::backdrop {
     grid-template-columns: 40px 1fr 40px;
     align-items: center;
     gap: 8px;
-    margin: 0 -4px 10px;
+    margin: 0 0 10px;
     padding: 10px 12px;
     position: sticky;
     top: 0;
     z-index: 20;
+    width: 100%;
+    max-width: 100%;
     background: rgba(255, 255, 255, 0.88);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -1455,9 +1502,39 @@ dialog.confirm-dialog::backdrop {
   }
 
   .main {
-    padding: 12px 16px max(24px, env(safe-area-inset-bottom));
+    padding: 12px 14px max(24px, env(safe-area-inset-bottom));
     padding-top: max(12px, env(safe-area-inset-top));
-    max-width: none;
+    max-width: 100%;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .mobile-toolbar,
+  .stats,
+  .grid {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 14px;
+  }
+
+  .card:active {
+    transform: none;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+    gap: 10px;
+  }
+
+  .category-list {
+    max-height: 32vh;
   }
 
   .topbar {
@@ -1472,19 +1549,11 @@ dialog.confirm-dialog::backdrop {
 
   .stat-card {
     padding: 12px 14px;
+    min-width: 0;
   }
 
   .stat-card strong {
     font-size: 20px;
-  }
-
-  .grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .category-list {
-    max-height: 32vh;
   }
 
   dialog.detail-dialog,
@@ -1513,7 +1582,7 @@ dialog.confirm-dialog::backdrop {
   }
 
   .dialog-header {
-    padding: max(12px, env(safe-area-inset-top)) 16px 12px;
+    padding: max(16px, env(safe-area-inset-top)) 18px 16px;
   }
 
   .dialog-header h2 {
@@ -1521,25 +1590,24 @@ dialog.confirm-dialog::backdrop {
   }
 
   .dialog-body {
-    padding: 0 16px 16px;
+    padding: 0 18px 18px;
   }
 
   .dialog-footer {
-    padding: 12px 16px max(12px, env(safe-area-inset-bottom));
-    box-shadow: 0 -4px 16px rgba(17, 24, 39, 0.06);
+    padding: 12px 18px max(12px, env(safe-area-inset-bottom));
   }
 
   .detail-tabs {
     position: sticky;
     top: 0;
     z-index: 2;
-    margin-bottom: 12px;
-    background: var(--panel);
-    padding-top: 4px;
+    margin-bottom: 14px;
+    background: var(--bg);
   }
 
-  .detail-actions {
-    grid-template-columns: 1fr;
+  .detail-prose section + section {
+    margin-top: 16px;
+    padding-top: 16px;
   }
 
   .confirm-actions {
@@ -1549,21 +1617,6 @@ dialog.confirm-dialog::backdrop {
   .confirm-actions .btn {
     flex: 1;
     min-width: 0;
-  }
-
-  .copy-chip {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .copy-chip code {
-    max-width: 55%;
-    text-align: right;
-  }
-
-  .insight-card {
-    padding: 12px 14px;
   }
 
   .code-panel {
@@ -1580,12 +1633,6 @@ dialog.confirm-dialog::backdrop {
 
   .progress-actions .btn {
     flex: 1;
-  }
-}
-
-@media (max-width: 959px) and (min-width: 600px) {
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
