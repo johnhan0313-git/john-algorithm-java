@@ -4,18 +4,40 @@ Java 8 + Maven 算法题整理项目。按**解法类别 → 难度 → 题目**
 
 ## 技术栈
 
-- Java 8
-- Maven 3.x
+- Java 8 + Maven 3.x（解法源码）
+- FastAPI + PostgreSQL + Redis（Web 服务，可选 MinIO 扩展）
+- Vite + React（学习面板，**强制邮箱验证码登录**）
+
+## Web 服务（john-server 部署）
+
+```bash
+# 一次性：john-server 建库 + 测试库建表 + 同步 68 题
+chmod +x scripts/*.sh run.sh
+./scripts/bootstrap-test-env.sh
+
+# 日常开发（连接 john-algorithm-test，需 Tailscale）
+./run.sh start
+./run.sh sync          # 新增/修改 Java 题后同步
+
+# 访问
+# 前端 http://localhost:3004  （未登录跳转 /login）
+# API  http://localhost:8004/docs
+```
+
+- 本地开发 **默认使用** `john-server` 上的 **`john-algorithm-test`** 测试库（非 SQLite）
+- 登录：邮箱 + 6 位验证码（无滑动拼图），JWT 有效期 **12 小时**
+- Portainer 生产部署见 [docs/PORTAINER_DEPLOY.md](docs/PORTAINER_DEPLOY.md)
+- 环境说明见 [docs/TEST_ENV.md](docs/TEST_ENV.md)
+
+> 原静态面板 [ui/](ui/) 已迁移至 [frontend/](frontend/)，仍可用 `scripts/generate-ui-data.py` 生成本地 data.js。
 
 ## 项目结构
 
 ```
-src/main/java/com/john/algorithm/
-├── common/          # ListNode、TreeNode、TestHelper
-├── {category}/     # 解法类别（array、hashmap、dp ...）
-│   ├── easy/
-│   ├── medium/
-│   └── hard/
+src/main/java/com/john/algorithm/   # Java 解法（真相源）
+backend/                            # FastAPI API
+frontend/                           # React 学习面板
+scripts/sync-problems.py            # Javadoc → PostgreSQL
 ```
 
 ## 快速开始

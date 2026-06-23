@@ -1,0 +1,40 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8004:8004"
+    networks:
+      - default
+      - john-postgresql_default
+      - john-redis_default
+    environment:
+      DATABASE_URL: postgresql+psycopg://john-algorithm:john-algorithm-123@john-postgresql:5432/john-algorithm
+      USE_MIGRATIONS: "true"
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      JWT_EXPIRE_MINUTES: "720"
+      REDIS_URL: redis://john-redis:6379/2
+      CORS_ORIGINS: http://localhost:3004,http://127.0.0.1:3004,https://algo.cool-app.me
+      AUTH_EXPOSE_CODES: "false"
+      SYNC_API_KEY: ${SYNC_API_KEY:-change-me-sync-key}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_USE_TLS: "false"
+      SMTP_USE_SSL: "true"
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3004:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  john-postgresql_default:
+    external: true
+  john-redis_default:
+    external: true
