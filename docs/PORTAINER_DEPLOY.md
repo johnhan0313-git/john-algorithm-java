@@ -113,8 +113,35 @@ environment:
 
 | 服务 | 地址 |
 |------|------|
-| 前端 | `http://<john-server>:3004` |
-| API 文档 | `http://<john-server>:8004/docs` |
+| 生产域名 | **https://sf.cool-app.me** |
+| 直连端口 | `http://<john-server>:3004`（前端）、`:8004`（API） |
+| API 健康检查 | https://sf.cool-app.me/api/health |
+
+## Cloudflare Tunnel + nginx（sf.cool-app.me）
+
+流量路径：`sf.cool-app.me` → cloudflared → `john-nginx:1180` → algorithm 容器。
+
+`~/.cloudflared/config.yml` 已配置 `*.cool-app.me` → `localhost:1180`，**无需单独加 Tunnel 规则**。
+
+nginx 片段见 [docs/nginx-sf.cool-app.me.conf](nginx-sf.cool-app.me.conf)，已合入 john-server `~/mydocker/mntdata/nginx/nginx.conf`：
+
+- `/api/` → `john-algorithm-java-backend-1:8004`
+- `/` → `john-algorithm-java-frontend-1:80`
+
+`john-nginx` 需在同一 Docker 网络（一次性）：
+
+```bash
+docker network connect john-algorithm-java_default john-nginx
+docker exec john-nginx nginx -t && docker restart john-nginx
+```
+
+修改 nginx 后：
+
+```bash
+docker exec john-nginx nginx -t && docker restart john-nginx
+```
+
+Stack 环境变量 `CORS_ORIGINS` 建议包含 `https://sf.cool-app.me`（同源访问 `/api` 时可不依赖 CORS，但便于调试）。
 
 ## 本地开发 vs 生产
 

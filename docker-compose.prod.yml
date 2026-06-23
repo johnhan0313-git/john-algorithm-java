@@ -13,7 +13,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
       JWT_EXPIRE_MINUTES: "720"
       REDIS_URL: redis://john-redis:6379/2
-      CORS_ORIGINS: http://localhost:3004,http://127.0.0.1:3004,https://algo.cool-app.me
+      CORS_ORIGINS: http://localhost:3004,http://127.0.0.1:3004,https://sf.cool-app.me,http://sf.cool-app.me
       AUTH_EXPOSE_CODES: "false"
       SYNC_API_KEY: ${SYNC_API_KEY:-change-me-sync-key}
       SMTP_HOST: ${SMTP_HOST:-}
