@@ -34,10 +34,19 @@ body {
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  max-width: 100%;
+  position: relative;
 }
 
 html {
   overflow-x: hidden;
+  max-width: 100%;
+}
+
+#root {
+  overflow-x: hidden;
+  max-width: 100%;
+  min-height: 100%;
 }
 
 button, input, select {
@@ -59,9 +68,11 @@ select:focus-visible {
 .app {
   --sidebar-width: 272px;
   display: grid;
-  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
   min-height: 100vh;
   transition: grid-template-columns 0.22s ease;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* ── Sidebar ── */
@@ -474,6 +485,8 @@ select:focus-visible {
 .main {
   padding: 24px 28px 48px;
   max-width: 1280px;
+  min-width: 0;
+  width: 100%;
 }
 
 .topbar {
@@ -584,7 +597,7 @@ select:hover {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(268px, 100%), 1fr));
   gap: 12px;
 }
 
@@ -699,7 +712,11 @@ select:hover {
 }
 
 .card-foot span:last-child {
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   text-align: right;
 }
 
@@ -805,8 +822,8 @@ select:hover {
 
 .shell-icon-btn .filter-badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: 2px;
+  right: 2px;
   margin: 0;
   min-width: 15px;
   height: 15px;
@@ -843,7 +860,7 @@ dialog.confirm-dialog {
   border: none;
   border-radius: var(--radius-lg);
   padding: 0;
-  width: min(320px, calc(100vw - 32px));
+  width: min(320px, calc(100% - 32px));
   box-shadow: 0 24px 64px rgba(17, 24, 39, 0.16);
   overflow: hidden;
 }
@@ -1389,6 +1406,14 @@ dialog.confirm-dialog::backdrop {
 }
 
 @media (max-width: 959px) {
+  html,
+  body,
+  #root {
+    overflow-x: clip;
+    width: 100%;
+    max-width: 100%;
+  }
+
   body {
     background:
       radial-gradient(ellipse 120% 80% at 50% -20%, rgba(37, 99, 235, 0.08), transparent 55%),
@@ -1402,7 +1427,8 @@ dialog.confirm-dialog::backdrop {
     min-height: 100dvh;
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
+    overflow-x: clip;
+    touch-action: pan-y;
   }
 
   .sidebar {
@@ -1411,17 +1437,21 @@ dialog.confirm-dialog::backdrop {
     left: 0;
     bottom: 0;
     z-index: 120;
-    width: min(88vw, 300px);
+    width: min(85vw, 300px);
     max-width: 300px;
     padding-top: max(14px, env(safe-area-inset-top));
     padding-bottom: max(14px, env(safe-area-inset-bottom));
-    transform: translateX(-105%);
+    transform: translateX(-100%);
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: none;
+    visibility: hidden;
+    pointer-events: none;
   }
 
   .sidebar.open {
     transform: translateX(0);
+    visibility: visible;
+    pointer-events: auto;
     box-shadow: 8px 0 40px rgba(17, 24, 39, 0.12);
   }
 
@@ -1454,7 +1484,7 @@ dialog.confirm-dialog::backdrop {
 
   .mobile-header {
     display: grid;
-    grid-template-columns: 40px 1fr 40px;
+    grid-template-columns: 40px minmax(0, 1fr) 40px;
     align-items: center;
     gap: 8px;
     margin: 0 0 10px;
@@ -1464,6 +1494,8 @@ dialog.confirm-dialog::backdrop {
     z-index: 20;
     width: 100%;
     max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
     background: rgba(255, 255, 255, 0.88);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -1502,11 +1534,11 @@ dialog.confirm-dialog::backdrop {
   }
 
   .main {
-    padding: 12px 14px max(24px, env(safe-area-inset-bottom));
-    padding-top: max(12px, env(safe-area-inset-top));
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
     max-width: 100%;
     width: 100%;
-    overflow-x: hidden;
+    box-sizing: border-box;
+    overflow-x: clip;
   }
 
   .mobile-toolbar,
@@ -1515,6 +1547,7 @@ dialog.confirm-dialog::backdrop {
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    box-sizing: border-box;
   }
 
   .card {
@@ -1529,7 +1562,7 @@ dialog.confirm-dialog::backdrop {
   }
 
   .grid {
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+    grid-template-columns: minmax(0, 1fr);
     gap: 10px;
   }
 
