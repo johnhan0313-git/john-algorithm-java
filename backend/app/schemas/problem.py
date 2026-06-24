@@ -58,7 +58,7 @@ class ProgressItem(BaseModel):
     slug: str
     status: str
     notes: str = ""
-    updated_at: str | None = None
+    updated_at: int | None = None
 
 
 class ProgressMapResponse(BaseModel):

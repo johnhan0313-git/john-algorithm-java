@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -11,7 +10,7 @@ class UserResponse(BaseModel):
     username: str
     email: str | None
     display_name: str | None
-    created_at: datetime
+    created_at: int
 
     model_config = {"from_attributes": True}
 

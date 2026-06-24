@@ -18,7 +18,7 @@ from app.schemas.auth import (
     TokenResponse,
     UserResponse,
 )
-from app.utils.time import utc_now
+from app.utils.time import utc_now_ms
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -35,7 +35,7 @@ def _user_response(user: User) -> UserResponse:
 
 
 def _issue_token(user: User, db: Session) -> TokenResponse:
-    user.last_login_at = utc_now()
+    user.last_login_at = utc_now_ms()
     db.commit()
     db.refresh(user)
     return TokenResponse(

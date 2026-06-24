@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime
-
-from sqlalchemy import JSON, DateTime, Float, Integer, String, Text, func
+from sqlalchemy import JSON, BigInteger, Float, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
+from app.utils.time import utc_now_ms
 
 
 class Problem(Base):
@@ -38,4 +37,4 @@ class Problem(Base):
     solution_code: Mapped[str] = mapped_column(Text, default="")
     code_lines: Mapped[int] = mapped_column(Integer, default=0)
     extra: Mapped[dict] = mapped_column(JSON, default=dict)
-    synced_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+    synced_at: Mapped[int] = mapped_column(BigInteger, default=utc_now_ms, onupdate=utc_now_ms, nullable=False)

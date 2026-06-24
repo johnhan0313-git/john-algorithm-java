@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
+from app.database import SessionLocal
+from app.models.user import User
+from app.utils.time import utc_now_ms
 from tests.auth_helpers import auth_headers, login_user
 
 
@@ -34,3 +37,19 @@ def test_wrong_email_code(client: TestClient):
 def test_problems_require_auth(client: TestClient):
     resp = client.get("/api/problems")
     assert resp.status_code == 401
+
+
+def test_login_timestamps_are_epoch_millis(client: TestClient):
+    before = utc_now_ms()
+    reg = login_user(client, email="tz@example.com")
+    after = utc_now_ms()
+
+    with SessionLocal() as db:
+        user = db.query(User).filter(User.email == "tz@example.com").one()
+        assert user.last_login_at is not None
+        assert before <= user.last_login_at <= after
+        assert before <= user.created_at <= after
+        assert abs(user.last_login_at - user.created_at) < 5000
+
+    me = client.get("/api/auth/me", headers=auth_headers(reg["access_token"]))
+    assert isinstance(me.json()["created_at"], int)

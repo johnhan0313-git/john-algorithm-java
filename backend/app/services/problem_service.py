@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
 
 from sqlalchemy.orm import Session
 
@@ -15,6 +14,7 @@ from app.schemas.problem import (
     StatsResponse,
 )
 from app.services.cache import cache_get, cache_key, cache_set, invalidate_problems_cache
+from app.utils.time import utc_now_ms
 
 
 def upsert_problems(db: Session, items: list[dict]) -> int:
@@ -28,7 +28,7 @@ def upsert_problems(db: Session, items: list[dict]) -> int:
             if key == "slug":
                 continue
             setattr(row, key, value)
-        row.synced_at = datetime.utcnow()
+        row.synced_at = utc_now_ms()
         count += 1
     db.commit()
     invalidate_problems_cache()

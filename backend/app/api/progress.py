@@ -27,7 +27,7 @@ def get_progress(user: User = Depends(get_current_user), db: Session = Depends(g
             slug=slug,
             status=progress.status,
             notes=progress.notes or "",
-            updated_at=progress.updated_at.isoformat() if progress.updated_at else None,
+            updated_at=progress.updated_at,
         )
         for progress, slug in rows
     }
@@ -69,5 +69,5 @@ def upsert_progress(
         slug=slug,
         status=row.status,
         notes=row.notes or "",
-        updated_at=row.updated_at.isoformat() if row.updated_at else None,
+        updated_at=row.updated_at,
     )

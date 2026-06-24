@@ -3,7 +3,7 @@ export interface AuthUser {
   username: string;
   email: string | null;
   display_name: string | null;
-  created_at: string;
+  created_at: number;
 }
 
 export interface AuthResponse {

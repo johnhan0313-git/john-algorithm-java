@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime
-
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import BigInteger, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
+from app.utils.time import utc_now_ms
 
 
 class ProblemProgress(Base):
@@ -17,4 +16,4 @@ class ProblemProgress(Base):
     problem_id: Mapped[int] = mapped_column(ForeignKey("problems.id", ondelete="CASCADE"), index=True)
     status: Mapped[str] = mapped_column(String(16), default="done")
     notes: Mapped[str] = mapped_column(Text, default="")
-    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+    updated_at: Mapped[int] = mapped_column(BigInteger, default=utc_now_ms, onupdate=utc_now_ms, nullable=False)

@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 from jose import JWTError, jwt
 
 from app.config import get_settings
-from app.utils.time import utc_now
 
 
 def create_access_token(user_id: int) -> str:
     settings = get_settings()
-    expire = utc_now() + timedelta(minutes=settings.jwt_expire_minutes)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expire_minutes)
     payload = {"sub": str(user_id), "type": "access", "exp": expire}
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
