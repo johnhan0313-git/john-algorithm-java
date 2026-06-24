@@ -20,12 +20,14 @@ body {
   font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   background: var(--bg);
   color: var(--text);
+  overflow-x: hidden;
 }
 
 .app {
   display: grid;
   grid-template-columns: 280px 1fr;
   min-height: 100vh;
+  max-width: 100%;
 }
 
 .sidebar {
@@ -133,6 +135,7 @@ input[type="search"], select {
 
 .main {
   padding: 20px 24px 40px;
+  min-width: 0;
 }
 
 .topbar {
@@ -148,6 +151,7 @@ input[type="search"], select {
   grid-template-columns: repeat(4, minmax(120px, 1fr));
   gap: 12px;
   flex: 1;
+  min-width: 0;
 }
 
 .stat-card {
@@ -173,11 +177,12 @@ input[type="search"], select {
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 14px;
 }
 
@@ -189,6 +194,7 @@ input[type="search"], select {
   cursor: pointer;
   transition: border-color 0.15s ease, transform 0.15s ease;
   box-shadow: var(--shadow);
+  min-width: 0;
 }
 
 .card:hover {
@@ -206,11 +212,14 @@ input[type="search"], select {
   justify-content: space-between;
   gap: 8px;
   align-items: center;
+  min-width: 0;
 }
 
 .card-head h3 {
   margin: 0;
   font-size: 16px;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .badge {
@@ -245,6 +254,10 @@ input[type="search"], select {
   border-radius: 999px;
   background: #f1f5f9;
   color: #475569;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tag.high { background: #ede9fe; color: var(--high); }
@@ -254,8 +267,21 @@ input[type="search"], select {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   font-size: 12px;
   color: var(--muted);
+  min-width: 0;
+}
+
+.card-foot span {
+  min-width: 0;
+}
+
+.card-foot span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
 }
 
 .btn, .icon-btn {
@@ -307,6 +333,7 @@ dialog::backdrop {
 .dialog-header, .dialog-footer {
   padding: 16px 20px;
   border-bottom: 1px solid var(--border);
+  min-width: 0;
 }
 
 .dialog-footer {
@@ -320,6 +347,7 @@ dialog::backdrop {
   padding: 0 20px 20px;
   max-height: 70vh;
   overflow: auto;
+  min-width: 0;
 }
 
 .detail-meta {
@@ -330,6 +358,7 @@ dialog::backdrop {
 
 #detailTitle {
   margin: 4px 0 0;
+  overflow-wrap: anywhere;
 }
 
 .detail-tags {
@@ -399,12 +428,14 @@ dialog::backdrop {
   align-items: center;
   gap: 12px;
   margin-bottom: 10px;
+  min-width: 0;
 }
 
 .code-meta {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .code-filename {
@@ -412,11 +443,17 @@ dialog::backdrop {
   font-size: 13px;
   font-weight: 600;
   color: #334155;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .code-lines {
   font-size: 12px;
   color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .code-panel {
@@ -440,6 +477,8 @@ dialog::backdrop {
   display: flex;
   align-items: stretch;
   min-height: 22px;
+  width: max-content;
+  min-width: 100%;
 }
 
 .code-row:hover {
@@ -457,11 +496,10 @@ dialog::backdrop {
 }
 
 .code-content {
-  flex: 1;
+  flex: 1 0 auto;
   padding: 0 16px;
   white-space: pre;
   color: #1e293b;
-  overflow-x: auto;
 }
 
 .hl-kw { color: #1d4ed8; font-weight: 600; }
@@ -499,7 +537,7 @@ dialog::backdrop {
 
 .copy-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
 }
@@ -535,4 +573,64 @@ dialog::backdrop {
   .app { grid-template-columns: 1fr; }
   .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
   .stats { grid-template-columns: repeat(2, 1fr); }
+  .main { padding: 16px 14px 32px; }
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .topbar-actions {
+    width: 100%;
+  }
+  .topbar-actions select {
+    flex: 1;
+    min-width: 0;
+  }
+  .topbar-actions .btn {
+    flex-shrink: 0;
+  }
+  dialog,
+  dialog.code-mode {
+    width: calc(100% - 24px);
+    max-width: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .sidebar { padding: 16px 14px; }
+  .stats { gap: 8px; }
+  .stat-card { padding: 12px; }
+  .card { padding: 14px; }
+  .card-head {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .dialog-header,
+  .dialog-footer {
+    padding: 14px;
+  }
+  .dialog-body {
+    padding: 0 14px 14px;
+  }
+  .detail-tabs {
+    display: flex;
+    width: 100%;
+  }
+  .detail-tab {
+    flex: 1;
+    padding-inline: 10px;
+  }
+  .code-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .code-toolbar .btn {
+    width: 100%;
+  }
+  .copy-row {
+    grid-template-columns: 1fr;
+  }
+  .copy-row .btn {
+    width: 100%;
+  }
 }
