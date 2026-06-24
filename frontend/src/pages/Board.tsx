@@ -7,6 +7,7 @@ import { useMediaQuery } from "../hooks/useMediaQuery";
 import { problemsApi, progressApi } from "../lib/api";
 import { DRAWER_LAYOUT_MQ } from "../lib/breakpoints";
 import { renderJavaCode, shortCompanies } from "../lib/codeHighlight";
+import { decodeHtmlEntities } from "../lib/text";
 import type { CategoryMeta, ProblemDetail, ProblemSummary, StatsResponse } from "../types";
 
 type SortBy = "category" | "passRateAsc" | "passRateDesc" | "lcNum";
@@ -94,6 +95,10 @@ export default function BoardPage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    (document.activeElement as HTMLElement | null)?.blur();
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = sidebarOpen || selectedId || logoutConfirmOpen ? "hidden" : "";
@@ -308,7 +313,7 @@ export default function BoardPage() {
 
   return (
     <div
-      className={`app${sidebarOpen ? " sidebar-open" : ""}${!sidebarOpen && sidebarCollapsed ? " sidebar-collapsed" : ""}`}
+      className={`app${sidebarOpen ? " sidebar-open" : ""}${!isDrawerLayout && !sidebarOpen && sidebarCollapsed ? " sidebar-collapsed" : ""}`}
     >
       {showSidebarBackdrop && (
         <button
@@ -539,7 +544,7 @@ export default function BoardPage() {
                 <span className={`card-status ${progress[p.id] ? "done" : ""}`}>
                   {progress[p.id] ? "已完成" : "待学习"}
                 </span>
-                <span>{p.code_lines ? `${p.code_lines} 行代码` : p.summary || "查看详情"}</span>
+                <span>{p.code_lines ? `${p.code_lines} 行代码` : decodeHtmlEntities(p.summary) || "查看详情"}</span>
               </div>
             </article>
           ))}
@@ -618,20 +623,20 @@ export default function BoardPage() {
                 <div id="panelInsight" className={`detail-panel detail-prose ${detailTab === "insight" ? "active" : ""}`}>
                   <section>
                     <h3>题目描述</h3>
-                    <p>{detail.description || "—"}</p>
-                    {detail.example && <p className="example">示例：{detail.example}</p>}
+                    <p>{decodeHtmlEntities(detail.description) || "—"}</p>
+                    {detail.example && <p className="example">示例：{decodeHtmlEntities(detail.example)}</p>}
                   </section>
                   <section>
                     <h3>核心解法</h3>
-                    <p>{detail.approach || "—"}</p>
+                    <p>{decodeHtmlEntities(detail.approach) || "—"}</p>
                   </section>
                   <section>
                     <h3>注意点</h3>
-                    <p>{detail.notes || "—"}</p>
+                    <p>{decodeHtmlEntities(detail.notes) || "—"}</p>
                   </section>
                   <section>
                     <h3>疑难点</h3>
-                    <p>{detail.pitfalls || "—"}</p>
+                    <p>{decodeHtmlEntities(detail.pitfalls) || "—"}</p>
                   </section>
                   <section className="detail-actions">
                     <button type="button" className="copy-chip" onClick={() => copyText(detail.fqn)}>

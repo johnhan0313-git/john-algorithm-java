@@ -260,11 +260,11 @@
 
     document.getElementById("detailLc").textContent = `LeetCode ${p.lcNum} · ${p.categoryLabel} · ${p.difficultyLabel}`;
     document.getElementById("detailTitle").textContent = p.title;
-    document.getElementById("detailDesc").textContent = p.description || "—";
-    document.getElementById("detailExample").textContent = p.example ? `示例：${p.example}` : "";
-    document.getElementById("detailApproach").textContent = p.approach || "—";
-    document.getElementById("detailNotes").textContent = p.notes || "—";
-    document.getElementById("detailPitfalls").textContent = p.pitfalls || "—";
+    document.getElementById("detailDesc").textContent = decodeHtmlEntities(p.description) || "—";
+    document.getElementById("detailExample").textContent = p.example ? `示例：${decodeHtmlEntities(p.example)}` : "";
+    document.getElementById("detailApproach").textContent = decodeHtmlEntities(p.approach) || "—";
+    document.getElementById("detailNotes").textContent = decodeHtmlEntities(p.notes) || "—";
+    document.getElementById("detailPitfalls").textContent = decodeHtmlEntities(p.pitfalls) || "—";
     document.getElementById("detailFqn").textContent = p.fqn;
     document.getElementById("detailPath").textContent = p.ideaPath;
     document.getElementById("detailRun").textContent = p.runCommand;
@@ -321,6 +321,15 @@
   function shortCompanies(text) {
     if (!text) return "—";
     return text.length > 18 ? `${text.slice(0, 18)}…` : text;
+  }
+
+  function decodeHtmlEntities(str) {
+    return String(str)
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
   }
 
   function escapeHtml(str) {

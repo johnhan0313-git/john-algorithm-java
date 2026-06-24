@@ -63,6 +63,7 @@ export default function LoginPage() {
     setLoggingIn(true);
     try {
       await loginWithEmail(email.trim(), emailCode.trim());
+      (document.activeElement as HTMLElement | null)?.blur();
       navigate(next);
     } catch (err) {
       setError(parseApiError(err, "登录失败"));

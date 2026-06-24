@@ -1392,9 +1392,9 @@ dialog.confirm-dialog::backdrop {
   width: 100%;
 }
 
-/* ── Drawer layout (< lg / 1024px) ── */
+/* ── Drawer layout: narrow viewport or touch-primary device ── */
 
-@media (max-width: 1023px) {
+@media (max-width: 1023px), (hover: none) and (pointer: coarse) {
   html,
   body,
   #root {
@@ -1695,9 +1695,15 @@ dialog.confirm-dialog::backdrop {
   .login-code-row .btn {
     width: 100%;
   }
+
+  .login-form input,
+  .search-field input,
+  select {
+    font-size: 16px;
+  }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
   .sidebar-backdrop {
     display: none !important;
   }

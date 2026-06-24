@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """从 Java 解法类生成 ui/data.js 供可视化面板使用。"""
 
+import html
 import json
 import re
 from collections import defaultdict
@@ -38,9 +39,13 @@ def strip_html(text: str) -> str:
     return re.sub(r"\s+", " ", text.replace("<p>", "").replace("</p>", " ").strip())
 
 
+def unescape_javadoc_text(text: str) -> str:
+    return html.unescape(text.strip()) if text else ""
+
+
 def parse_javadoc_block(text: str, tag: str) -> str:
     match = re.search(rf"\*\s*<p>{re.escape(tag)}[：:]([^\n]+)", text)
-    return match.group(1).strip() if match else ""
+    return unescape_javadoc_text(match.group(1)) if match else ""
 
 
 def parse_method_doc(text: str) -> dict:
@@ -66,7 +71,7 @@ def parse_method_doc(text: str) -> dict:
             summary = line
             break
         return {
-            "summary": summary,
+            "summary": unescape_javadoc_text(summary),
             "approach": parse_javadoc_block(block, "核心解法"),
             "notes": parse_javadoc_block(block, "注意点"),
             "pitfalls": parse_javadoc_block(block, "疑难点"),
@@ -122,7 +127,7 @@ def parse_file(path: Path) -> dict:
     short_title = title.split(". ", 1)[1] if ". " in title else title
 
     desc_match = re.search(r"\* LeetCode [^\n]+\n \*\n \* <p>([^\n]+)", text)
-    description = desc_match.group(1).strip() if desc_match else ""
+    description = unescape_javadoc_text(desc_match.group(1)) if desc_match else ""
 
     example = parse_javadoc_block(text, "示例")
     frequency = parse_javadoc_block(text, "面试考频")

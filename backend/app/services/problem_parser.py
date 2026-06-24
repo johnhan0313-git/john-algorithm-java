@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import json
 import logging
 import re
@@ -14,9 +15,13 @@ def strip_html(text: str) -> str:
     return re.sub(r"\s+", " ", text.replace("<p>", "").replace("</p>", " ").strip())
 
 
+def unescape_javadoc_text(text: str) -> str:
+    return html.unescape(text.strip()) if text else ""
+
+
 def parse_javadoc_block(text: str, tag: str) -> str:
     match = re.search(rf"\*\s*<p>{re.escape(tag)}[：:]([^\n]+)", text)
-    return match.group(1).strip() if match else ""
+    return unescape_javadoc_text(match.group(1)) if match else ""
 
 
 def parse_method_doc(text: str) -> dict[str, str]:
@@ -42,7 +47,7 @@ def parse_method_doc(text: str) -> dict[str, str]:
             summary = line
             break
         return {
-            "summary": summary,
+            "summary": unescape_javadoc_text(summary),
             "approach": parse_javadoc_block(block, "核心解法"),
             "notes": parse_javadoc_block(block, "注意点"),
             "pitfalls": parse_javadoc_block(block, "疑难点"),
@@ -104,7 +109,7 @@ def parse_java_file(path: Path, root: Path) -> dict | None:
     short_title = title.split(". ", 1)[1] if ". " in title else title
 
     desc_match = re.search(r"\* LeetCode [^\n]+\n \*\n \* <p>([^\n]+)", text)
-    description = desc_match.group(1).strip() if desc_match else ""
+    description = unescape_javadoc_text(desc_match.group(1)) if desc_match else ""
 
     example = parse_javadoc_block(text, "示例")
     frequency = parse_javadoc_block(text, "面试考频")
