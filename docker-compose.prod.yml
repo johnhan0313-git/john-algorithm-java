@@ -1,12 +1,14 @@
 services:
   backend:
     build: ./backend
+    container_name: john-algorithm-java-backend-1
     ports:
       - "8004:8004"
     networks:
       - default
       - john-postgresql_default
       - john-redis_default
+      - john-nginx_default
     environment:
       DATABASE_URL: postgresql+psycopg://john-algorithm:john-algorithm-123@john-postgresql:5432/john-algorithm
       USE_MIGRATIONS: "true"
@@ -26,9 +28,16 @@ services:
     restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+    container_name: john-algorithm-java-frontend-1
     ports:
       - "3004:80"
+    networks:
+      - default
+      - john-nginx_default
     depends_on:
       - backend
     restart: unless-stopped
@@ -37,4 +46,6 @@ networks:
   john-postgresql_default:
     external: true
   john-redis_default:
+    external: true
+  john-nginx_default:
     external: true

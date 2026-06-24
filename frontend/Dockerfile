@@ -1,8 +1,11 @@
 FROM node:22-alpine AS build
+ARG GITHUB_TOKEN
+ARG NPM_REGISTRY=https://registry.npmmirror.com
 WORKDIR /app
-COPY package.json ./
-RUN npm config set registry https://registry.npmmirror.com \
-    && npm install
+COPY package.json package-lock.json* ./
+RUN printf '@johnhan0313-git:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n' "$GITHUB_TOKEN" > .npmrc \
+    && npm config set registry "${NPM_REGISTRY}" \
+    && if [ -f package-lock.json ]; then npm ci; else npm install; fi
 COPY . .
 RUN npm run build
 

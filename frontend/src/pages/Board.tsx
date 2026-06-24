@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import BrandLogo from "../components/BrandLogo";
+import { AppLogo } from "@johnhan0313-git/shared/brand";
 import PageHeader from "../components/PageHeader";
 import { useAuth } from "../contexts/AuthContext";
 import { useMediaQuery } from "../hooks/useMediaQuery";
@@ -328,7 +328,7 @@ export default function BoardPage() {
       <aside className={`sidebar${sidebarOpen ? " open" : ""}`}>
         <div className="sidebar-head">
           <div className="brand brand-with-logo">
-            <BrandLogo />
+            <AppLogo appId="algorithm" size={32} className="brand-logo" alt="算法助手" />
             <div className="brand-text">
               <h1>算法助手</h1>
             </div>

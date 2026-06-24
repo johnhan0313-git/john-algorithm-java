@@ -134,17 +134,20 @@ select:focus-visible {
   line-height: 0;
 }
 
-.brand-logo svg {
+.brand-logo svg,
+.brand-logo img {
   display: block;
   filter: drop-shadow(0 2px 8px rgba(99, 102, 241, 0.14));
 }
 
-.brand-logo-md svg {
+.brand-logo-md svg,
+.brand-logo-md img {
   width: 40px;
   height: 40px;
 }
 
-.brand-logo-sm svg {
+.brand-logo-sm svg,
+.brand-logo-sm img {
   width: 38px;
   height: 38px;
 }

@@ -1,4 +1,6 @@
-import BrandLogo from "./BrandLogo";
+import { AppLogo } from "@johnhan0313-git/shared/brand";
+import { AppsLauncher } from "@johnhan0313-git/shared/nav";
+import "@johnhan0313-git/shared/nav.css";
 
 type SortBy = "category" | "passRateAsc" | "passRateDesc" | "lcNum";
 
@@ -53,7 +55,7 @@ export default function PageHeader({
       )}
 
       <div className="page-header-brand">
-        <BrandLogo size="sm" />
+        <AppLogo appId="algorithm" size={28} className="brand-logo brand-logo-sm" alt="算法助手" />
         <strong className="page-header-app-name">算法助手</strong>
       </div>
 
@@ -80,6 +82,7 @@ export default function PageHeader({
       </p>
 
       <div className="page-header-actions">
+        <AppsLauncher current="algorithm" />
         <select
           id="sortBy"
           value={sortBy}

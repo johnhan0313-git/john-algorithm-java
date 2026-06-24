@@ -86,7 +86,7 @@ environment:
 1. Stacks → Add stack → **Git repository**
 2. URL：`https://github.com/johnhan0313-git/john-algorithm-java.git`
 3. Compose path：`docker-compose.prod.yml`
-4. 环境变量：`JWT_SECRET`、`SYNC_API_KEY`、`SMTP_*`、`CORS_ORIGINS`
+4. 环境变量：`JWT_SECRET`、`SYNC_API_KEY`、`SMTP_*`、`CORS_ORIGINS`、**`GITHUB_TOKEN`**（拉取 `@johnhan0313-git/shared`）
 5. Deploy
 
 ---
@@ -128,12 +128,7 @@ nginx 片段见 [docs/nginx-sf.cool-app.me.conf](nginx-sf.cool-app.me.conf)，�
 - `/api/` → `john-algorithm-java-backend-1:8004`
 - `/` → `john-algorithm-java-frontend-1:80`
 
-`john-nginx` 需在同一 Docker 网络（一次性）：
-
-```bash
-docker network connect john-algorithm-java_default john-nginx
-docker exec john-nginx nginx -t && docker restart john-nginx
-```
+`docker-compose.prod.yml` 已将 backend / frontend 加入外部网络 `john-nginx_default`，**无需**再手动 `docker network connect`。
 
 修改 nginx 后：
 
