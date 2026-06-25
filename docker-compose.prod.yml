@@ -31,7 +31,9 @@ services:
     build:
       context: ./frontend
       args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
+        GH_PACKAGES_TOKEN: ${GH_PACKAGES_TOKEN:-}
+      secrets:
+        - gh_packages_token
     container_name: john-algorithm-java-frontend-1
     ports:
       - "3004:80"
@@ -41,6 +43,12 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+# Portainer 容器需挂载宿主机目录（见 deploy/portainer-compose.example.yaml）:
+#   /home/john-han/.secrets -> /run/john-secrets
+secrets:
+  gh_packages_token:
+    file: ${GH_PACKAGES_TOKEN_FILE:-/run/john-secrets/gh_packages_token}
 
 networks:
   john-postgresql_default:

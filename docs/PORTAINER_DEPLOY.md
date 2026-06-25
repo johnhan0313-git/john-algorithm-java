@@ -86,7 +86,12 @@ environment:
 1. Stacks → Add stack → **Git repository**
 2. URL：`https://github.com/johnhan0313-git/john-algorithm-java.git`
 3. Compose path：`docker-compose.prod.yml`
-4. 环境变量：`JWT_SECRET`、`SYNC_API_KEY`、`SMTP_*`、`CORS_ORIGINS`、**`GITHUB_TOKEN`**（拉取 `@johnhan0313-git/shared`）
+4. 环境变量：`JWT_SECRET`、`SYNC_API_KEY`、`SMTP_*`、`CORS_ORIGINS`（**勿**在 Stack 填 `GH_PACKAGES_TOKEN`，见下）
+
+### GitHub Packages token（构建 frontend）
+
+与 john-readhub 相同：服务器一次执行 `scripts/setup-server-secrets.sh`，Portainer 挂载 `/home/john-han/.secrets:/run/john-secrets:ro`（`deploy/portainer-compose.example.yaml`）。
+
 5. Deploy
 
 ---
